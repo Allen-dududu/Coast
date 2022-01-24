@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31613.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.Core", "Coast.Core\Coast.Core.csproj", "{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coast.RabbitMQ", "Coast.RabbitMQ\Coast.RabbitMQ.csproj", "{509B0148-7C61-48CF-9009-7CEFF138208B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{509B0148-7C61-48CF-9009-7CEFF138208B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{509B0148-7C61-48CF-9009-7CEFF138208B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{509B0148-7C61-48CF-9009-7CEFF138208B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{509B0148-7C61-48CF-9009-7CEFF138208B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {007978E1-0F6A-4266-A3B8-31733C98F903}
+	EndGlobalSection
+EndGlobal
