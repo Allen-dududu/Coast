@@ -6,6 +6,12 @@ namespace Coast.Core
 {
     public class CoastOptions
     {
+        public CoastOptions()
+        {
+            FailedRetryCount = 50;
+        }
+
+        public int FailedRetryCount = 50;
 
         internal IList<ICoastOptionsExtension> Extensions { get; }
 
