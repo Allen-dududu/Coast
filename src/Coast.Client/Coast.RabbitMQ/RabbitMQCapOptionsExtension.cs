@@ -11,6 +11,7 @@ namespace Coast.RabbitMQ
     internal class RabbitMQCapOptionsExtension : ICoastOptionsExtension
     {
         private readonly ConnectionFactory _connectionFactory;
+
         public RabbitMQCapOptionsExtension(ConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory;
@@ -21,7 +22,6 @@ namespace Coast.RabbitMQ
             services.AddSingleton<IConnectionFactory>(_connectionFactory);
             services.AddSingleton<IRabbitMQPersistentConnection, DefaultRabbitMQPersistentConnection>();
             services.AddSingleton<IEventBus, EventBusRabbitMQ>();
-
         }
     }
 }

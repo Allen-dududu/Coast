@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -13,13 +14,13 @@ namespace Coast.Core
 
         public int FailedRetryCount = 50;
 
-        internal IList<ICoastOptionsExtension> Extensions { get; }
+        internal IList<Action<IServiceCollection>> Extensions { get; }
 
         /// <summary>
         /// Registers an extension that will be executed when building services.
         /// </summary>
         /// <param name="extension"></param>
-        public void RegisterExtension(ICoastOptionsExtension extension)
+        public void RegisterExtension(Action<IServiceCollection> extension)
         {
             if (extension == null)
             {
