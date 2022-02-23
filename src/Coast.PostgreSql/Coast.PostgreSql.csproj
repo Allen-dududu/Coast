@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<PackageTags>$(PackageTags);PostgreSQL</PackageTags>
+
+  </PropertyGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.0" />
+		<PackageReference Include="Npgsql" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.12" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.12" />
+		<PackageReference Include="Npgsql" Version="6.0.0" />
+	</ItemGroup>
+
+</Project>
