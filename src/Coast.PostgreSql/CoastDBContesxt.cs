@@ -1,4 +1,5 @@
-﻿using Coast.Core.MigrationManager;
+﻿using Coast.Core.Barrier;
+using Coast.Core.MigrationManager;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,11 +16,11 @@ namespace Coast.PostgreSql
         {
         }
 
-        public DbSet<Student> Students { get; set; }
+        public DbSet<Barrier> Barriers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<>();
+            modelBuilder.Entity<Barrier>();
         }
     }
 }

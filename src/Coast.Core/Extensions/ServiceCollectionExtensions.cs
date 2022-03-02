@@ -19,7 +19,12 @@ namespace Microsoft.Extensions.DependencyInjection
             //Options and extension service
             var options = new CoastOptions();
             setupAction.Invoke(options);
-            
+
+            foreach (var serviceExtension in options.Extensions)
+            {
+                serviceExtension(services);
+            }
+
             return new CoastBuild(services);
         }
     }

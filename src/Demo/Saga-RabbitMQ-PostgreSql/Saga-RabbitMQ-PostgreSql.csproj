@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Saga_RabbitMQ_PostgreSql</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Coast.Core\Coast.Core.csproj" />
+    <ProjectReference Include="..\..\Coast.PostgreSql\Coast.PostgreSql.csproj" />
+    <ProjectReference Include="..\..\Coast.RabbitMQ\Coast.RabbitMQ.csproj" />
+  </ItemGroup>
+
+</Project>

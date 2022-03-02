@@ -5,9 +5,13 @@ VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.Core", "Coast.Core\Coast.Core.csproj", "{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.RabbitMQ", "Coast.RabbitMQ\Coast.RabbitMQ.csproj", "{509B0148-7C61-48CF-9009-7CEFF138208B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.PostgreSql", "Coast.PostgreSql\Coast.PostgreSql.csproj", "{5A9B34EF-36B8-4BF3-ADA1-16D554493020}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coast.PostgreSql", "Coast.PostgreSql\Coast.PostgreSql.csproj", "{5A9B34EF-36B8-4BF3-ADA1-16D554493020}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo", "Demo", "{396A9BE9-BCAF-4495-96D7-10EAC6B5E09C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saga-RabbitMQ-PostgreSql", "Demo\Saga-RabbitMQ-PostgreSql\Saga-RabbitMQ-PostgreSql.csproj", "{D25B055A-F9DF-4449-BD55-3F0ADE922547}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.RabbitMQ", "Coast.RabbitMQ\Coast.RabbitMQ.csproj", "{28F3717E-F6BD-4FF2-BC69-FC0A45B4E319}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,17 +23,24 @@ Global
 		{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF7BB45E-0FB8-4987-9113-F861D5BB7D05}.Release|Any CPU.Build.0 = Release|Any CPU
-		{509B0148-7C61-48CF-9009-7CEFF138208B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{509B0148-7C61-48CF-9009-7CEFF138208B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{509B0148-7C61-48CF-9009-7CEFF138208B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{509B0148-7C61-48CF-9009-7CEFF138208B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5A9B34EF-36B8-4BF3-ADA1-16D554493020}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5A9B34EF-36B8-4BF3-ADA1-16D554493020}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A9B34EF-36B8-4BF3-ADA1-16D554493020}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A9B34EF-36B8-4BF3-ADA1-16D554493020}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D25B055A-F9DF-4449-BD55-3F0ADE922547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D25B055A-F9DF-4449-BD55-3F0ADE922547}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D25B055A-F9DF-4449-BD55-3F0ADE922547}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D25B055A-F9DF-4449-BD55-3F0ADE922547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28F3717E-F6BD-4FF2-BC69-FC0A45B4E319}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28F3717E-F6BD-4FF2-BC69-FC0A45B4E319}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28F3717E-F6BD-4FF2-BC69-FC0A45B4E319}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28F3717E-F6BD-4FF2-BC69-FC0A45B4E319}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D25B055A-F9DF-4449-BD55-3F0ADE922547} = {396A9BE9-BCAF-4495-96D7-10EAC6B5E09C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {007978E1-0F6A-4266-A3B8-31733C98F903}
