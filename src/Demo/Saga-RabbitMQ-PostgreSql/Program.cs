@@ -14,7 +14,6 @@ builder.Services.AddCosat(x =>
 
 var app = builder.Build();
 
-app.MigrateCosat();
 
 
 // Configure the HTTP request pipeline.

@@ -1,25 +1,29 @@
-﻿namespace Coast.PostgreSql
+namespace Coast.PostgreSql
 {
     using System;
     using Coast.Core;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.EntityFrameworkCore;
 
+    /// <summary>
+    /// CoastOptions Extensions for postgreSql.
+    /// </summary>
     public static class CoastOptionsExtensions
     {
+        /// <summary>
+        /// Using PostgreSql, and config connectionString of postgreSql.
+        /// </summary>
+        /// <param name="options">options.</param>
+        /// <param name="connectionString">connectionString.</param>
+        /// <returns>CoastOptions.</returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static CoastOptions UsePostgreSql(this CoastOptions options, string connectionString)
         {
-            if(string.IsNullOrWhiteSpace(connectionString))
+            if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ArgumentNullException(nameof(connectionString));
             }
 
-            options.RegisterExtension(serviceCollection =>
-            {
-
-                serviceCollection.AddDbContext<CoastDBContesxt>(opts =>
-                    opts.UseNpgsql(connectionString));
-            });
+            options.RegisterExtension(serviceCollection => serviceCollection.Configure<DBOptions>(db => db.ConnectionString = connectionString));
 
             return options;
         }

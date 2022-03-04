@@ -1,11 +1,10 @@
-﻿using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Coast.RabbitMQ
 {
+    using global::RabbitMQ.Client;
+    using global::RabbitMQ.Client.Events;
+    using System;
+    using System.Collections.Generic;
+
     public class RabbitMQOptions
     {
         /// <summary>

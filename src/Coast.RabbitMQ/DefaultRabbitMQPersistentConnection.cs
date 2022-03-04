@@ -1,17 +1,15 @@
-﻿using Microsoft.Extensions.Logging;
-using Polly;
-using Polly.Retry;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Sockets;
-using System.Text;
-
 namespace Coast.RabbitMQ
 {
+    using Microsoft.Extensions.Logging;
+    using Polly;
+    using Polly.Retry;
+    using global::RabbitMQ.Client;
+    using global::RabbitMQ.Client.Events;
+    using global::RabbitMQ.Client.Exceptions;
+    using System;
+    using System.IO;
+    using System.Net.Sockets;
+
     public class DefaultRabbitMQPersistentConnection
        : IRabbitMQPersistentConnection
     {

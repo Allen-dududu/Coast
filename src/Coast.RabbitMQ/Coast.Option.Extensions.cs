@@ -1,14 +1,11 @@
-﻿using Coast.Core;
-using Coast.Core.EventBus;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Coast.RabbitMQ
 {
+    using Coast.Core;
+    using Coast.Core.EventBus;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
+    using global::RabbitMQ.Client;
+    using System;
 
     public static class CoastOptionsExtensions
     {
@@ -24,10 +21,12 @@ namespace Coast.RabbitMQ
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
 
-            options.RegisterExtension( serviceCollection => {
+            options.RegisterExtension(serviceCollection =>
+            {
                 serviceCollection.AddSingleton<ConnectionFactory>(connectionFactory);
                 serviceCollection.AddSingleton<IRabbitMQPersistentConnection, DefaultRabbitMQPersistentConnection>();
-                serviceCollection.AddSingleton<IEventBus>(s => {
+                serviceCollection.AddSingleton<IEventBus>(s =>
+                {
                     var pc = s.GetRequiredService<IRabbitMQPersistentConnection>();
                     var log = s.GetRequiredService<ILogger<EventBusRabbitMQ>>();
                     var subsManager = s.GetRequiredService<IEventBusSubscriptionsManager>();

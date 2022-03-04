@@ -1,10 +1,8 @@
-﻿using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Coast.RabbitMQ
 {
+    using global::RabbitMQ.Client;
+    using System;
+
     public interface IRabbitMQPersistentConnection
         : IDisposable
     {

@@ -1,22 +1,20 @@
-﻿using Autofac;
-using Coast.Core.EventBus;
-using Coast.Core.Extensions;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Polly;
-using Polly.Retry;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Coast.RabbitMQ
 {
+    using System;
+    using System.Net.Sockets;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Coast.Core.EventBus;
+    using Coast.Core.Extensions;
+    using global::RabbitMQ.Client;
+    using global::RabbitMQ.Client.Events;
+    using global::RabbitMQ.Client.Exceptions;
+    using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using Polly;
+    using Polly.Retry;
+
     public class EventBusRabbitMQ : IEventBus, IDisposable
     {
         const string BROKER_NAME = "eshop_event_bus";

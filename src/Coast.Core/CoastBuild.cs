@@ -7,14 +7,14 @@ namespace Coast.Core
     {
         public CoastBuild(IServiceCollection services)
         {
-            Services = services;
+            _Services = services;
         }
 
-        public IServiceCollection Services { get; }
+        public IServiceCollection _Services { get; }
 
         public CoastBuild AddMessageHandler<T>() where T : class, IIntegrationEventHandler
         {
-            Services.AddTransient<T>();
+            _Services.AddTransient<T>();
             return this;
         }
     }
