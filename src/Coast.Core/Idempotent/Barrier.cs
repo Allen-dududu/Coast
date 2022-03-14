@@ -1,18 +1,22 @@
-﻿using System;
-
-namespace Coast.Core.Barrier
+﻿namespace Coast.Core.Barrier
 {
+    using System;
+
     public class Barrier
     {
         public int Id { get; set; }
 
         public int TransactionType { get; set; }
 
-        public long GlobalSagaId { get; set; }
+        /// <summary>
+        /// global id.
+        /// maybe Saga or TCC.
+        /// </summary>
+        public long CorrelationId { get; set; }
 
-        public long SagaStepId { get; set; }
+        public long StepId { get; set; }
 
-        public int SagaStepType { get; set; }
+        public int StepType { get; set; }
 
         public DateTime CreateTime { get; set; }
     }

@@ -15,7 +15,7 @@ namespace Coast.PostgreSql
         /// <param name="options">options.</param>
         /// <param name="connectionString">connectionString.</param>
         /// <returns>CoastOptions.</returns>
-        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentNullException">connectionString should not be empty.</exception>
         public static CoastOptions UsePostgreSql(this CoastOptions options, string connectionString)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -24,7 +24,6 @@ namespace Coast.PostgreSql
             }
 
             options.RegisterExtension(serviceCollection => serviceCollection.Configure<DBOptions>(db => db.ConnectionString = connectionString));
-
             return options;
         }
     }
