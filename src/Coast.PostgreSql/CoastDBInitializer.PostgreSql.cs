@@ -34,28 +34,25 @@ namespace Coast.PostgreSql
             {
 
             });
-
         }
 
         private string CreateTableSql()
         {
             var sql = $@"
-CREATE TABLE IF NOT EXISTS Barrier(
+CREATE TABLE IF NOT EXISTS Coast_Barrier(
 	""Id"" BIGINT PRIMARY KEY NOT NULL,
-    ""TransactionType"" VARCHAR(20) NOT NULL,
-	""Name"" VARCHAR(200) NOT NULL,
-	""Group"" VARCHAR(200) NULL,
-	""Content"" TEXT NULL,
-	""Retries"" INT NOT NULL,
-	""Added"" TIMESTAMP NOT NULL,
-    ""ExpiresAt"" TIMESTAMP NULL,
-	""StatusName"" VARCHAR(50) NOT NULL
+    ""TransactionType"" int NOT NULL,
+	""CorrelationId"" bigint NOT NULL,
+	""StepId"" VARCHAR(200) NULL,
+	""StepType"" int NULL,
+    ""CreateTime"" TIMESTAMP NULL,
+    UNIQUE (""CorrelationId"", ""StepId"", ""StepType"")
 );
 
 
 ";
+
+            return sql;
         }
-
-
     }
 }

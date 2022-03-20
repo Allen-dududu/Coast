@@ -6,12 +6,20 @@
 
     public class Saga
     {
+        private List<(SagaStep, SagaStep)> sageSteps { get; set; } = new List<(SagaStep, SagaStep)>();
+
+        public Saga(IEnumerable<(SagaStep, SagaStep)> steps)
+        {
+            sageSteps.AddRange(steps);
+        }
+
+        public Saga()
+        {
+
+        }
+
         public long Id { get; set; }
 
-        public string Name { get; set; }
-
-        public 
-
-        public ICollection<SageStep> sageSteps { get; set; }
+        public SagaStatus Status { get; set; } = SagaStatus.Created;
     }
 }

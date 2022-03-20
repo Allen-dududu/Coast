@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
-
-namespace Coast.Core.EventBus
+﻿namespace Coast.Core.EventBus
 {
+    using System;
+    using Newtonsoft.Json;
+
     public class IntegrationEvent
     {
         public IntegrationEvent()

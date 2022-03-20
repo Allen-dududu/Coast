@@ -6,11 +6,14 @@
     {
         public int Id { get; set; }
 
+        /// <summary>
+        /// Gets or sets transaction Type.
+        /// </summary>
         public int TransactionType { get; set; }
 
         /// <summary>
-        /// global id.
-        /// maybe Saga or TCC.
+        /// Gets or sets global transaction id.
+        /// maybe Saga or TCC or others.
         /// </summary>
         public long CorrelationId { get; set; }
 
