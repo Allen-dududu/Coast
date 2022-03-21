@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Coast.Core.EventBus
+﻿namespace Coast.Core.EventBus
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Text;
+
     public partial class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManager
     {
         public class SubscriptionInfo
         {
             public bool IsDynamic { get; }
+
             public Type HandlerType { get; }
 
             private SubscriptionInfo(bool isDynamic, Type handlerType)
@@ -21,6 +22,7 @@ namespace Coast.Core.EventBus
             {
                 return new SubscriptionInfo(true, handlerType);
             }
+
             public static SubscriptionInfo Typed(Type handlerType)
             {
                 return new SubscriptionInfo(false, handlerType);

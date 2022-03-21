@@ -2,7 +2,9 @@ namespace Coast.PostgreSql
 {
     using System;
     using Coast.Core;
+    using Coast.Core.MigrationManager;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
 
     /// <summary>
     /// CoastOptions Extensions for postgreSql.
@@ -24,6 +26,8 @@ namespace Coast.PostgreSql
             }
 
             options.RegisterExtension(serviceCollection => serviceCollection.Configure<DBOptions>(db => db.ConnectionString = connectionString));
+            options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<ICoastDBInitializer, CoastDBInitializer>());
+
             return options;
         }
     }

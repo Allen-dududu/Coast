@@ -10,15 +10,15 @@
     {
         public long Id { get; set; }
 
-        public string Name { get; set; }
+        public string EventName { get; set; }
 
-        public SagaStepType HandleEventName { get; set; }
+        public SagaStepType StepType { get; set; }
 
         public SagaStepStatus Status { get; set; } = SagaStepStatus.Awaiting;
 
-        public ISagaRequestBody RequestBody { get; set; }
+        public ISagaRequestBody? RequestBody { get; set; }
 
-        public string FailedReason { get; set; }
+        public string? FailedReason { get; set; }
 
         public abstract SagaStepEvent GetStepEvent();
     }

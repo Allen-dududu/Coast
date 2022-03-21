@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Coast.Core.EventBus
+﻿namespace Coast.Core.EventBus
 {
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+
     public partial class InMemoryEventBusSubscriptionsManager : IEventBusSubscriptionsManager
     {
-
-
         private readonly ConcurrentDictionary<string, List<SubscriptionInfo>> _handlers;
         private readonly List<Type> _eventTypes;
 
+        /// <inheritdoc/>
         public event EventHandler<string> OnEventRemoved;
 
         public InMemoryEventBusSubscriptionsManager()
@@ -22,6 +21,7 @@ namespace Coast.Core.EventBus
         }
 
         public bool IsEmpty => !_handlers.Keys.Any();
+
         public void Clear() => _handlers.Clear();
 
         public void AddDynamicSubscription<TH>(string eventName)
@@ -67,14 +67,12 @@ namespace Coast.Core.EventBus
             }
         }
 
-
         public void RemoveDynamicSubscription<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler
         {
             var handlerToRemove = FindDynamicSubscriptionToRemove<TH>(eventName);
             DoRemoveHandler(eventName, handlerToRemove);
         }
-
 
         public void RemoveSubscription<T, TH>()
             where TH : IIntegrationEventHandler<T>
@@ -84,7 +82,6 @@ namespace Coast.Core.EventBus
             var eventName = GetEventKey<T>();
             DoRemoveHandler(eventName, handlerToRemove);
         }
-
 
         private void DoRemoveHandler(string eventName, SubscriptionInfo subsToRemove)
         {
@@ -99,9 +96,9 @@ namespace Coast.Core.EventBus
                     {
                         _eventTypes.Remove(eventType);
                     }
+
                     RaiseOnEventRemoved(eventName);
                 }
-
             }
         }
 
@@ -110,6 +107,7 @@ namespace Coast.Core.EventBus
             var key = GetEventKey<T>();
             return GetHandlersForEvent(key);
         }
+
         public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => _handlers[eventName];
 
         private void RaiseOnEventRemoved(string eventName)
@@ -118,13 +116,11 @@ namespace Coast.Core.EventBus
             handler?.Invoke(this, eventName);
         }
 
-
         private SubscriptionInfo FindDynamicSubscriptionToRemove<TH>(string eventName)
             where TH : IDynamicIntegrationEventHandler
         {
             return DoFindSubscriptionToRemove(eventName, typeof(TH));
         }
-
 
         private SubscriptionInfo FindSubscriptionToRemove<T, TH>()
              where T : IntegrationEvent
@@ -142,7 +138,6 @@ namespace Coast.Core.EventBus
             }
 
             return _handlers[eventName].SingleOrDefault(s => s.HandlerType == handlerType);
-
         }
 
         public bool HasSubscriptionsForEvent<T>() where T : IntegrationEvent
@@ -150,6 +145,7 @@ namespace Coast.Core.EventBus
             var key = GetEventKey<T>();
             return HasSubscriptionsForEvent(key);
         }
+
         public bool HasSubscriptionsForEvent(string eventName) => _handlers.ContainsKey(eventName);
 
         public Type GetEventTypeByName(string eventName) => _eventTypes.SingleOrDefault(t => t.Name == eventName);

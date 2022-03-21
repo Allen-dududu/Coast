@@ -1,8 +1,8 @@
-﻿using Coast.Core.EventBus;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Coast.Core
+﻿namespace Coast.Core
 {
+    using Coast.Core.EventBus;
+    using Microsoft.Extensions.DependencyInjection;
+
     public sealed class CoastBuild
     {
         public CoastBuild(IServiceCollection services)

@@ -30,25 +30,38 @@ namespace Coast.PostgreSql
         {
             var sql = CreateTableSql();
             using var connection = PostgreSqlDataConnection.OpenConnection(_options.Value.ConnectionString);
-            await connection.ExecuteAsync(sql, new
-            {
-
-            });
+            await connection.ExecuteAsync(sql).ConfigureAwait(false);
         }
 
         private string CreateTableSql()
         {
             var sql = $@"
 CREATE TABLE IF NOT EXISTS Coast_Barrier(
-	""Id"" BIGINT PRIMARY KEY NOT NULL,
     ""TransactionType"" int NOT NULL,
 	""CorrelationId"" bigint NOT NULL,
-	""StepId"" VARCHAR(200) NULL,
+	""StepId"" bigint NOT NULL,
 	""StepType"" int NULL,
     ""CreateTime"" TIMESTAMP NULL,
     UNIQUE (""CorrelationId"", ""StepId"", ""StepType"")
 );
 
+CREATE TABLE IF NOT EXISTS Coast_Saga(
+	""Id"" bigint PRIMARY KEY NOT NULL,
+    ""Status"" int NOT NULL,
+    ""CurrentStep"" bigint NULL
+) ;
+
+CREATE TABLE IF NOT EXISTS Coast_SagaStep(
+	""Id"" bigint NOT NULL,
+    ""CorrelationId"" bigint NOT NULL,
+    ""EventName"" VARCHAR(250) NOT NULL,
+    ""Steptype"" int NOT NULL,
+    ""Status""   int NOT NULL,
+    ""RequestBody"" text NULL,
+    ""FailedReason"" text NULL,
+    ""PublishedTime"" TIMESTAMP NULL,
+) ;
+CREATE INDEX SagaStep_idx ON Coast_SagaStep (""CorrelationId"");
 
 ";
 

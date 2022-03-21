@@ -1,8 +1,8 @@
-﻿using System;
-using System.Linq;
-
-namespace Coast.Core.Extensions
+﻿namespace Coast.Core.Extensions
 {
+    using System;
+    using System.Linq;
+
     public static class GenericTypeExtensions
     {
         public static string GetGenericTypeName(this Type type)
