@@ -3,6 +3,7 @@
     using System;
     using Coast.Core;
     using Coast.Core.EventBus;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
 
     public static class ServiceCollectionExtensions
     {
@@ -13,7 +14,7 @@
                 throw new ArgumentNullException(nameof(setupAction));
             }
 
-            services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
+            services.TryAddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
 
             //Options and extension service
             var options = new CoastOptions();

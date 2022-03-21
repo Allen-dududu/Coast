@@ -6,6 +6,7 @@ namespace Coast.RabbitMQ
     using Microsoft.Extensions.Logging;
     using global::RabbitMQ.Client;
     using System;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
 
     public static class CoastOptionsExtensions
     {
@@ -23,9 +24,9 @@ namespace Coast.RabbitMQ
 
             options.RegisterExtension(serviceCollection =>
             {
-                serviceCollection.AddSingleton<ConnectionFactory>(connectionFactory);
-                serviceCollection.AddSingleton<IRabbitMQPersistentConnection, DefaultRabbitMQPersistentConnection>();
-                serviceCollection.AddSingleton<IEventBus>(s =>
+                serviceCollection.TryAddSingleton<ConnectionFactory>(connectionFactory);
+                serviceCollection.TryAddSingleton<IRabbitMQPersistentConnection, DefaultRabbitMQPersistentConnection>();
+                serviceCollection.TryAddSingleton<IEventBus>(s =>
                 {
                     var pc = s.GetRequiredService<IRabbitMQPersistentConnection>();
                     var log = s.GetRequiredService<ILogger<EventBusRabbitMQ>>();
