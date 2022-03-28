@@ -8,6 +8,6 @@
 
     public interface ICoastDBInitializer
     {
-        Task InitializeAsync();
+        Task InitializeAsync(CancellationToken cancellationToken);
     }
 }

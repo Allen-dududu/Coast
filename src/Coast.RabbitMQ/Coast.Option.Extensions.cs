@@ -24,7 +24,7 @@ namespace Coast.RabbitMQ
 
             options.RegisterExtension(serviceCollection =>
             {
-                serviceCollection.TryAddSingleton<ConnectionFactory>(connectionFactory);
+                serviceCollection.TryAddSingleton<IConnectionFactory>(connectionFactory);
                 serviceCollection.TryAddSingleton<IRabbitMQPersistentConnection, DefaultRabbitMQPersistentConnection>();
                 serviceCollection.TryAddSingleton<IEventBus>(s =>
                 {

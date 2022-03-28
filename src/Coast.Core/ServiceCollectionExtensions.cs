@@ -16,7 +16,7 @@
 
             services.TryAddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
 
-            //Options and extension service
+            // Options and extension service
             var options = new CoastOptions();
             setupAction.Invoke(options);
 
@@ -24,6 +24,10 @@
             {
                 serviceExtension(services);
             }
+
+            // Startup and Hosted
+            services.AddSingleton<Bootstrapper>();
+            services.AddHostedService(sp => sp.GetRequiredService<Bootstrapper>());
 
             return new CoastBuild(services);
         }

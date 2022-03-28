@@ -8,11 +8,18 @@
     {
         private List<(SagaStep, SagaStep)> sageSteps { get; set; } = new List<(SagaStep, SagaStep)>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Saga"/> class.
+        /// </summary>
+        /// <param name="steps">Saga Steps.</param>
         public Saga(IEnumerable<(SagaStep, SagaStep)> steps)
         {
             sageSteps.AddRange(steps);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Saga"/> class.
+        /// </summary>
         public Saga()
         {
 

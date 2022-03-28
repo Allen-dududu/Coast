@@ -8,8 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddCosat(x =>
 {
-    x.UseRabbitMQ("","",5);
-    x.UsePostgreSql("");
+    x.UseRabbitMQ("localhost", "",5);
+    x.UsePostgreSql("Host=localhost;Port=5432;database=postgres;User Id=postgres;Password=root;"
+);
 });
 
 var app = builder.Build();

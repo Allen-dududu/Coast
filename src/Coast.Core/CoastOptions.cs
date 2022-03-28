@@ -11,7 +11,7 @@ namespace Coast.Core
         /// </summary>
         public int FailedRetryCount { get; set; }
 
-        internal IList<Action<IServiceCollection>> Extensions { get; }
+        internal IList<Action<IServiceCollection>> Extensions { get; } = new List<Action<IServiceCollection>>();
 
         public CoastOptions()
         {

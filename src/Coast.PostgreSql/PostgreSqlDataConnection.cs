@@ -11,7 +11,7 @@
         /// <summary>
         /// get the db connection.
         /// </summary>
-        /// <param name="connStr"></param>
+        /// <param name="connStr">connection string.</param>
         /// <returns>dataconnection.</returns>
         public static IDbConnection OpenConnection(string connStr)
         {

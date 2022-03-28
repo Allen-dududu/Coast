@@ -2,6 +2,7 @@ namespace Coast.PostgreSql
 {
     using System;
     using System.Data;
+    using System.Threading;
     using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.MigrationManager;
@@ -26,8 +27,13 @@ namespace Coast.PostgreSql
         }
 
         /// <inheritdoc/>
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             var sql = CreateTableSql();
             using var connection = PostgreSqlDataConnection.OpenConnection(_options.Value.ConnectionString);
             await connection.ExecuteAsync(sql).ConfigureAwait(false);
@@ -36,7 +42,7 @@ namespace Coast.PostgreSql
         private string CreateTableSql()
         {
             var sql = $@"
-CREATE TABLE IF NOT EXISTS Coast_Barrier(
+CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
     ""TransactionType"" int NOT NULL,
 	""CorrelationId"" bigint NOT NULL,
 	""StepId"" bigint NOT NULL,
@@ -45,13 +51,13 @@ CREATE TABLE IF NOT EXISTS Coast_Barrier(
     UNIQUE (""CorrelationId"", ""StepId"", ""StepType"")
 );
 
-CREATE TABLE IF NOT EXISTS Coast_Saga(
+CREATE TABLE IF NOT EXISTS ""Coast_Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
     ""Status"" int NOT NULL,
     ""CurrentStep"" bigint NULL
 ) ;
 
-CREATE TABLE IF NOT EXISTS Coast_SagaStep(
+CREATE TABLE IF NOT EXISTS ""Coast_SagaStep""(
 	""Id"" bigint NOT NULL,
     ""CorrelationId"" bigint NOT NULL,
     ""EventName"" VARCHAR(250) NOT NULL,
@@ -59,11 +65,10 @@ CREATE TABLE IF NOT EXISTS Coast_SagaStep(
     ""Status""   int NOT NULL,
     ""RequestBody"" text NULL,
     ""FailedReason"" text NULL,
-    ""PublishedTime"" TIMESTAMP NULL,
+    ""PublishedTime"" TIMESTAMP NULL
 ) ;
-CREATE INDEX SagaStep_idx ON Coast_SagaStep (""CorrelationId"");
-
-";
+CREATE INDEX SagaStep_idx ON ""Coast_SagaStep"" (""CorrelationId"");"
+;
 
             return sql;
         }
