@@ -6,7 +6,7 @@
 
     public class Saga
     {
-        private List<(SagaStep, SagaStep)> sageSteps { get; set; } = new List<(SagaStep, SagaStep)>();
+        private List<(SagaStep, SagaStep?)> sageSteps { get; set; } = new List<(SagaStep, SagaStep?)>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Saga"/> class.
@@ -28,5 +28,10 @@
         public long Id { get; set; }
 
         public SagaStatus Status { get; set; } = SagaStatus.Created;
+
+        public SagaStepEvent Start()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

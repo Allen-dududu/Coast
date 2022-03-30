@@ -8,7 +8,7 @@ namespace Coast.RabbitMQ
     using System;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
-    public static class CoastOptionsExtensions
+    public static class CoastOptionsExtension
     {
         public static CoastOptions UseRabbitMQ(this CoastOptions options, string hostName, string subscriptionClientName, int retryCount)
         {

@@ -9,7 +9,7 @@ namespace Coast.PostgreSql
     /// <summary>
     /// CoastOptions Extensions for postgreSql.
     /// </summary>
-    public static class CoastOptionsExtensions
+    public static class CoastOptionsExtension
     {
         /// <summary>
         /// Using PostgreSql, and config connectionString of postgreSql.
