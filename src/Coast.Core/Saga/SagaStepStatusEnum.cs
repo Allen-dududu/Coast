@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Text;
 
-    public enum SagaStepStatus
+    public enum SagaStepStatusEnum
     {
         Awaiting = 0,
         Started = 1,

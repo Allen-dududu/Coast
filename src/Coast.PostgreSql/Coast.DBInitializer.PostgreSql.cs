@@ -54,20 +54,22 @@ CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
 CREATE TABLE IF NOT EXISTS ""Coast_Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
     ""Status"" int NOT NULL,
-    ""CurrentStep"" bigint NULL
+    ""CurrentStep"" bigint NULL,
+    ""CreateTime"" TIMESTAMP NULL
 ) ;
 
 CREATE TABLE IF NOT EXISTS ""Coast_SagaStep""(
 	""Id"" bigint NOT NULL,
     ""CorrelationId"" bigint NOT NULL,
     ""EventName"" VARCHAR(250) NOT NULL,
-    ""Steptype"" int NOT NULL,
+    ""StepType"" int NOT NULL,
     ""Status""   int NOT NULL,
     ""RequestBody"" text NULL,
     ""FailedReason"" text NULL,
+    ""CreateTime"" TIMESTAMP NULL,
     ""PublishedTime"" TIMESTAMP NULL
 ) ;
-CREATE INDEX SagaStep_idx ON ""Coast_SagaStep"" (""CorrelationId"");"
+CREATE INDEX IF NOT EXISTS SagaStep_idx ON ""Coast_SagaStep"" (""CorrelationId"");"
 ;
 
             return sql;

@@ -7,7 +7,7 @@
     /// <summary>
     /// Enum of SagaStep Type.
     /// </summary>
-    public enum SagaStepType
+    public enum SagaStepTypeEnum
     {
          Commit = 0,
          Cancel = 1,

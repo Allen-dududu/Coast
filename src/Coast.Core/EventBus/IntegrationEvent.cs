@@ -23,5 +23,7 @@
 
         [JsonProperty]
         public DateTime CreationDate { get; private set; }
+
+        public string EventName { get; set; }
     }
 }
