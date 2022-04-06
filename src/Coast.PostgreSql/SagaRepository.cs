@@ -30,10 +30,7 @@
         /// <inheritdoc/>
         public async Task AddSagaAsync(Saga saga, CancellationToken cancellationToken = default)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             var insertSagaSql =
 @"INSERT INTO ""Coast_Saga"" 
@@ -55,7 +52,7 @@ VALUES (@Id, @CorrelationId, @EventName, @StepType, @Status, @RequestBody, @Crea
                         insertSagaSql,
                         new { Id = sagaId, Status = SagaStatusEnum.Started, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
 
-                foreach (var step in saga.SageSteps)
+                foreach (var step in saga.SagaSteps)
                 {
                     var sagaStepId = SnowflakeId.Default().NextId();
                     var s1 = step.Item1;
@@ -68,7 +65,7 @@ VALUES (@Id, @CorrelationId, @EventName, @StepType, @Status, @RequestBody, @Crea
                     {
                         await connection.ExecuteAsync(
                        insertSagaStepSql,
-                       new { Id = sagaStepId, CorrelationId = sagaId, EventName = s2.EventName, StepType = SagaStepTypeEnum.Cancel, Status = SagaStepStatusEnum.Awaiting, RequestBody = s2.RequestBody, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
+                       new { Id = sagaStepId, CorrelationId = sagaId, EventName = s2.EventName, StepType = SagaStepTypeEnum.Compensate, Status = SagaStepStatusEnum.Awaiting, RequestBody = s2.RequestBody, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
                     }
                 }
 
@@ -85,10 +82,7 @@ VALUES (@Id, @CorrelationId, @EventName, @StepType, @Status, @RequestBody, @Crea
 
         public async Task UpdateSagaByIdAsync(Saga saga, CancellationToken cancellationToken = default)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
+            cancellationToken.ThrowIfCancellationRequested();
 
             throw new NotImplementedException();
         }

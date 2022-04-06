@@ -1,8 +1,10 @@
-﻿namespace Coast.Core.EventBus
+﻿using System.Threading;
+
+namespace Coast.Core.EventBus
 {
     public interface IEventBus
     {
-        void Publish(IntegrationEvent @event);
+        void Publish(IntegrationEvent @event, CancellationToken cancellationToken = default);
 
         void Subscribe<T, TH>()
             where T : IntegrationEvent

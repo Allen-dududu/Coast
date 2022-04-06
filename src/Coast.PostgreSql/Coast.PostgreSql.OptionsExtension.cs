@@ -1,7 +1,9 @@
 namespace Coast.PostgreSql
 {
     using System;
+    using System.Data.Common;
     using Coast.Core;
+    using Coast.Core.EventBus.IntegrationEventLogEF;
     using Coast.Core.MigrationManager;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -27,6 +29,8 @@ namespace Coast.PostgreSql
 
             options.RegisterExtension(serviceCollection => serviceCollection.Configure<DBOptions>(db => db.ConnectionString = connectionString));
             options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<ICoastDBInitializer, CoastDBInitializer>());
+            options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<Func<DbConnection, IIntegrationEventLogService>>(
+                sp => (DbConnection c) => new IntegrationEventLogService(c)));
 
             return options;
         }

@@ -23,5 +23,13 @@
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public Task UpdateSagaByIdAsync(Saga saga, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// GetSaga by saga id.
+        /// </summary>
+        /// <param name="sagaId">the id of saga.</param>
+        /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
+        /// <returns>saga instance.</returns>
+        public Task<Saga> GetSagaByIdAsync(long sagaId, CancellationToken cancellationToken = default);
     }
 }

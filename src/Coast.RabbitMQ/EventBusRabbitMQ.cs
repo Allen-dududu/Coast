@@ -3,6 +3,7 @@ namespace Coast.RabbitMQ
     using System;
     using System.Net.Sockets;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Coast.Core.EventBus;
     using Coast.Core.Extensions;
@@ -62,12 +63,14 @@ namespace Coast.RabbitMQ
             }
         }
 
-        public void Publish(IntegrationEvent @event)
+        public void Publish(IntegrationEvent @event, CancellationToken cancellationToken = default)
         {
             if (!_persistentConnection.IsConnected)
             {
                 _persistentConnection.TryConnect();
             }
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             var policy = RetryPolicy.Handle<BrokerUnreachableException>()
                 .Or<SocketException>()

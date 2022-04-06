@@ -10,6 +10,6 @@
     public enum SagaStepTypeEnum
     {
          Commit = 0,
-         Cancel = 1,
+         Compensate = 1,
     }
 }

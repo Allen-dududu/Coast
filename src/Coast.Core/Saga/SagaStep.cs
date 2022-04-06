@@ -8,35 +8,47 @@
 
     public class SagaStep
     {
-        public SagaStep(long correlationId, ISagaRequestBody sagaRequestBody, int executeOrder = default)
+        public SagaStep(long correlationId, ISagaRequestBody sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
         {
+            if (executeOrder < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(executeOrder), "executeOrder should be positive integer or 0");
+            }
+
             CorrelationId = correlationId;
             ExecuteOrder = executeOrder;
             EventName = sagaRequestBody.GetType().Name;
             RequestBody = JsonConvert.SerializeObject(sagaRequestBody);
+            HasCompensation = hasCompensation;
         }
 
-        public SagaStep(long correlationId, string eventName, object sagaRequestBody, int executeOrder = default)
+        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
         {
+            if (executeOrder < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(executeOrder), "executeOrder should be positive integer or 0");
+            }
+
             CorrelationId = correlationId;
             EventName = eventName;
             ExecuteOrder = executeOrder;
             RequestBody = JsonConvert.SerializeObject(sagaRequestBody);
+            HasCompensation = hasCompensation;
         }
 
         /// <summary>
-        /// the Id of SagaStep.
+        /// Gets the Id of SagaStep.
         /// </summary>
-        public long Id { get; private set; }
+        public long Id { get; private set; } = SnowflakeId.Default().NextId();
 
         /// <summary>
-        /// the Id of Saga.
+        /// Gets or sets the Id of Saga.
         /// </summary>
         public long CorrelationId { get; set; }
 
-        public SagaStepTypeEnum StepType { get; protected set; }
+        public bool HasCompensation { get; protected set; }
 
-        public SagaStepStatusEnum Status { get; protected set; } = SagaStepStatusEnum.Awaiting;
+        public SagaStepStatusEnum Status { get; set; } = SagaStepStatusEnum.Awaiting;
 
         public string RequestBody { get; protected set; }
 
@@ -49,54 +61,36 @@
         public DateTime PublishedTime { get; protected set; }
 
         /// <summary>
-        /// The order in which saga step is executed.
+        /// Gets or sets the order in which saga step is executed.
         /// </summary>
-        public int ExecuteOrder { get;set; }
+        public int ExecuteOrder { get; set; }
 
-        public abstract SagaEvent GetStepEvent();
-
-        protected abstract (string, string) GetStepEventDefinitionInternal();
-
-        protected virtual (string?, string?) GetStepCompensateEventInternal() => (null, null);
-
-        public bool RequiresCompensate
+        public SagaEvent GetStepEvents(long sagaId)
         {
-            get
-            {
-                var (type, parameters) = GetStepCompensateEventInternal();
-                return !string.IsNullOrEmpty(type) && !string.IsNullOrEmpty(parameters);
-            }
-        }
-
-        public SagaEvent GetStepEvent(Guid sagaId)
-        {
-            var (stepEventTypeName, stepEventParameters) = GetStepEventDefinitionInternal();
-
             return new SagaEvent
             {
                 EventName = EventName,
                 SagaStepId = Id,
                 EventType = SagaStepTypeEnum.Commit,
                 CorrelationId = CorrelationId,
-                Payload = stepEventParameters
+                Payload = RequestBody,
             };
         }
 
-        public SagaEvent? GetStepCompensateEvent(Guid sagaId)
+        public SagaEvent? GetStepCompensateEvents(long sagaId)
         {
-            var (stepCompensateEventTypeName, stepCompensateEventParameters) = GetStepCompensateEventInternal();
-            if (string.IsNullOrEmpty(stepCompensateEventTypeName) && string.IsNullOrEmpty(stepCompensateEventParameters))
+            if (!HasCompensation)
             {
                 return null;
             }
 
             return new SagaEvent
             {
+                EventName = EventName,
                 SagaStepId = Id,
-                ServiceName = ServiceName,
-                EventType = stepCompensateEventTypeName,
-                SagaId = sagaId,
-                Payload = stepCompensateEventParameters
+                EventType = SagaStepTypeEnum.Compensate,
+                CorrelationId = CorrelationId,
+                Payload = RequestBody,
             };
         }
     }
