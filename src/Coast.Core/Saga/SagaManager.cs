@@ -69,7 +69,6 @@
         {
             Console.WriteLine($"{sagaEvent.EventType} - Succeeded: {sagaEvent.Succeeded}");
             var saga = await _sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
-
             await _sagaRepository.UpdateSagaByIdAsync(saga);
             var nextStepEvent = saga.ProcessEvent(sagaEvent);
 

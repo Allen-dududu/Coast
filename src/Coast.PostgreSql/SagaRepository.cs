@@ -32,52 +32,57 @@
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var insertSagaSql =
-@"INSERT INTO ""Coast_Saga"" 
-(""Id"", ""Status"", ""CreateTime"") 
-VALUES (@Id, @Status, @CreateTime); ";
+//            var insertSagaSql =
+//@"INSERT INTO ""Coast_Saga"" 
+//(""Id"", ""Status"", ""CreateTime"") 
+//VALUES (@Id, @Status, @CreateTime); ";
 
-            var insertSagaStepSql =
-@"INSERT INTO ""Coast_Saga"" 
-(""Id"", ""CorrelationId"", ""EventName"", ""StepType"", ""Status"", ""RequestBody"", ""CreateTime"")
-VALUES (@Id, @CorrelationId, @EventName, @StepType, @Status, @RequestBody, @CreateTime); ";
+//            var insertSagaStepSql =
+//@"INSERT INTO ""Coast_Saga"" 
+//(""Id"", ""CorrelationId"", ""EventName"", ""StepType"", ""Status"", ""RequestBody"", ""CreateTime"")
+//VALUES (@Id, @CorrelationId, @EventName, @StepType, @Status, @RequestBody, @CreateTime); ";
 
-            using var connection = PostgreSqlDataConnection.OpenConnection(_options.Value.ConnectionString);
-            using var tran = connection.BeginTransaction();
+//            using var connection = PostgreSqlDataConnection.OpenConnection(_options.Value.ConnectionString);
+//            using var tran = connection.BeginTransaction();
 
-            try
-            {
-                var sagaId = SnowflakeId.Default().NextId();
-                await connection.ExecuteAsync(
-                        insertSagaSql,
-                        new { Id = sagaId, Status = SagaStatusEnum.Started, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
+//            try
+//            {
+//                var sagaId = SnowflakeId.Default().NextId();
+//                await connection.ExecuteAsync(
+//                        insertSagaSql,
+//                        new { Id = sagaId, Status = SagaStatusEnum.Started, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
 
-                foreach (var step in saga.SagaSteps)
-                {
-                    var sagaStepId = SnowflakeId.Default().NextId();
-                    var s1 = step.Item1;
-                    var s2 = step.Item2;
-                    await connection.ExecuteAsync(
-                        insertSagaStepSql,
-                        new { Id = sagaStepId, CorrelationId = sagaId, EventName = s1.EventName, StepType = SagaStepTypeEnum.Commit, Status = SagaStepStatusEnum.Awaiting, RequestBody = s1.RequestBody, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
+//                foreach (var step in saga.SagaSteps)
+//                {
+//                    var sagaStepId = SnowflakeId.Default().NextId();
+//                    var s1 = step.Item1;
+//                    var s2 = step.Item2;
+//                    await connection.ExecuteAsync(
+//                        insertSagaStepSql,
+//                        new { Id = sagaStepId, CorrelationId = sagaId, EventName = s1.EventName, StepType = SagaStepTypeEnum.Commit, Status = SagaStepStatusEnum.Awaiting, RequestBody = s1.RequestBody, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
 
-                    if (s2 != null)
-                    {
-                        await connection.ExecuteAsync(
-                       insertSagaStepSql,
-                       new { Id = sagaStepId, CorrelationId = sagaId, EventName = s2.EventName, StepType = SagaStepTypeEnum.Compensate, Status = SagaStepStatusEnum.Awaiting, RequestBody = s2.RequestBody, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
-                    }
-                }
+//                    if (s2 != null)
+//                    {
+//                        await connection.ExecuteAsync(
+//                       insertSagaStepSql,
+//                       new { Id = sagaStepId, CorrelationId = sagaId, EventName = s2.EventName, StepType = SagaStepTypeEnum.Compensate, Status = SagaStepStatusEnum.Awaiting, RequestBody = s2.RequestBody, CreateTime = DateTime.UtcNow }).ConfigureAwait(false);
+//                    }
+//                }
 
-                tran.Commit();
-            }
-            catch (Exception ex)
-            {
-                tran.Rollback();
-                _logger.LogError(ex, "-----error of insert saga into the postgreSql DB-----");
+//                tran.Commit();
+//            }
+//            catch (Exception ex)
+//            {
+//                tran.Rollback();
+//                _logger.LogError(ex, "-----error of insert saga into the postgreSql DB-----");
 
-                throw;
-            }
+//                throw;
+//            }
+        }
+
+        public Task<Saga> GetSagaByIdAsync(long sagaId, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task UpdateSagaByIdAsync(Saga saga, CancellationToken cancellationToken = default)
