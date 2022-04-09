@@ -28,7 +28,9 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
     - name: Install dependencies
-      run: dotnet restore src/coast.sln
+      working-directory: ./src
+      run: dotnet restore 
       
     - name: Build
-      run: dotnet build src/coast.sln --configuration Release --no-restore
+      working-directory: ./src
+      run: dotnet build --configuration Release --no-restore
