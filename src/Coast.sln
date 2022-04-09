@@ -20,7 +20,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{356B8F2C-586E-4280-9F3D-AC2208CFF22E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MigrationGenerate", "MigrationGenerate\MigrationGenerate.csproj", "{31087790-5880-4BE5-B779-E4C930874907}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MigrationGenerate", "MigrationGenerate\MigrationGenerate.csproj", "{31087790-5880-4BE5-B779-E4C930874907}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coast.Core.Test", "Coast.Core.Test\Coast.Core.Test.csproj", "{2E167B4F-F360-4B96-AFB9-D4A5996805B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,12 +50,17 @@ Global
 		{31087790-5880-4BE5-B779-E4C930874907}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31087790-5880-4BE5-B779-E4C930874907}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31087790-5880-4BE5-B779-E4C930874907}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E167B4F-F360-4B96-AFB9-D4A5996805B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E167B4F-F360-4B96-AFB9-D4A5996805B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E167B4F-F360-4B96-AFB9-D4A5996805B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E167B4F-F360-4B96-AFB9-D4A5996805B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D25B055A-F9DF-4449-BD55-3F0ADE922547} = {396A9BE9-BCAF-4495-96D7-10EAC6B5E09C}
+		{2E167B4F-F360-4B96-AFB9-D4A5996805B8} = {356B8F2C-586E-4280-9F3D-AC2208CFF22E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {007978E1-0F6A-4266-A3B8-31733C98F903}
