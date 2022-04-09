@@ -31,6 +31,10 @@ jobs:
       working-directory: ./src
       run: dotnet restore 
       
-    - name: Build
+    - name: Build ✔️
       working-directory: ./src
       run: dotnet build --configuration Release --no-restore
+
+    - name: Run automated tests 🧪
+      working-directory: ./src
+      run: dotnet test -c Release --no-build
