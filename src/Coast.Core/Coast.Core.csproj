@@ -24,6 +24,11 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="System.Text.Json" Version="6.0.2" />
+		<PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Util\" />
 	</ItemGroup>
 
 </Project>
