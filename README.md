@@ -1,6 +1,6 @@
 <h2>Coast</h2>
 
 [![Build And Automated Tests](https://github.com/Allen-dududu/Coast/actions/workflows/build.yaml/badge.svg)](https://github.com/Allen-dududu/Coast/actions/workflows/build.yaml)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/dotnetcore/CAP/master/LICENSE.txt)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Coast is a decentralized distributed transaction framwork.
