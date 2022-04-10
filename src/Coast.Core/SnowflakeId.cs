@@ -87,7 +87,7 @@
 
                 if (!long.TryParse(Environment.GetEnvironmentVariable("Coast_WORKERID", EnvironmentVariableTarget.Machine), out var workerId))
                 {
-                    workerId = Util.GenerateWorkerId(MaxWorkerId);
+                    workerId = IdUtil.GenerateWorkerId(MaxWorkerId);
                 }
 
                 return _snowflakeId = new SnowflakeId(workerId);
@@ -140,7 +140,7 @@
         }
     }
 
-    internal static class Util
+    internal static class IdUtil
     {
         /// <summary>
         /// auto generate workerId, try using mac first, if failed, then randomly generate one
