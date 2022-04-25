@@ -1,4 +1,4 @@
-﻿namespace Coast.Core.EventBus.IntegrationEventLogEF
+﻿namespace Coast.Core.EventBus.IntegrationEventLog
 {
     using System;
     using System.Collections.Generic;
@@ -7,12 +7,9 @@
     using System.Text;
     using System.Text.Json;
 
-    [Table("IntegrationEventLog")]
-    public class IntegrationEventLogEntry
+    public class EventLogEntry
     {
-        private IntegrationEventLogEntry() { }
-
-        public IntegrationEventLogEntry(IntegrationEvent @event, Guid transactionId)
+        public EventLogEntry(IntegrationEvent @event)
         {
             EventId = @event.Id;
             CreationTime = @event.CreationDate;
@@ -23,17 +20,14 @@
             });
             State = EventStateEnum.NotPublished;
             TimesSent = 0;
-            TransactionId = transactionId.ToString();
         }
 
-        public Guid EventId { get; private set; }
+        public long EventId { get; private set; }
 
         public string EventTypeName { get; private set; }
 
-        [NotMapped]
         public string EventTypeShortName => EventTypeName.Split('.')?.Last();
 
-        [NotMapped]
         public IntegrationEvent IntegrationEvent { get; private set; }
 
         public EventStateEnum State { get; set; }
@@ -44,9 +38,7 @@
 
         public string Content { get; private set; }
 
-        public string TransactionId { get; private set; }
-
-        public IntegrationEventLogEntry DeserializeJsonContent(Type type)
+        public EventLogEntry DeserializeJsonContent(Type type)
         {
             IntegrationEvent = JsonSerializer.Deserialize(Content, type, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true }) as IntegrationEvent;
             return this;

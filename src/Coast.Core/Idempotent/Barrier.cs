@@ -1,4 +1,4 @@
-﻿namespace Coast.Core.Barrier
+﻿namespace Coast.Core
 {
     using System;
 

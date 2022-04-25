@@ -1,4 +1,4 @@
-﻿namespace Coast.Core.Saga
+﻿namespace Coast.Core
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +8,7 @@
 
     public class SagaStep
     {
-        public SagaStep(long correlationId, ISagaRequestBody sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public SagaStep(long correlationId, object sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
         {
             if (executeOrder < 0)
             {
@@ -48,7 +48,7 @@
 
         public bool HasCompensation { get; protected set; }
 
-        public SagaStepStatusEnum Status { get; set; } = SagaStepStatusEnum.Awaiting;
+        public SagaStepStateEnum State { get; set; } = SagaStepStateEnum.Awaiting;
 
         public string RequestBody { get; protected set; }
 
@@ -58,7 +58,7 @@
 
         public DateTime CreateTime { get; protected set; }
 
-        public DateTime PublishedTime { get; protected set; }
+        public DateTime UpdateTime { get; protected set; }
 
         /// <summary>
         /// Gets or sets the order in which saga step is executed.
@@ -73,7 +73,7 @@
                 SagaStepId = Id,
                 EventType = SagaStepTypeEnum.Commit,
                 CorrelationId = CorrelationId,
-                Payload = RequestBody,
+                RequestBody = RequestBody,
             };
         }
 
@@ -90,7 +90,7 @@
                 SagaStepId = Id,
                 EventType = SagaStepTypeEnum.Compensate,
                 CorrelationId = CorrelationId,
-                Payload = RequestBody,
+                RequestBody = RequestBody,
             };
         }
     }

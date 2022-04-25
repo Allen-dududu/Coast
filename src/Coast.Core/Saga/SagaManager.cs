@@ -1,21 +1,25 @@
-﻿namespace Coast.Core.Saga
+﻿namespace Coast.Core
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
+    using Microsoft.Extensions.Logging;
 
     public class SagaManager
     {
-        private readonly ISagaRepository _sagaRepository;
+        private readonly IRepositoryFactory _repositoryFactory;
         private readonly IEventBus _eventPublisher;
+        private readonly ILogger<SagaManager> _logger;
 
-        public SagaManager(ISagaRepository sagaRepository, IEventBus eventPublisher)
+        public SagaManager(IRepositoryFactory repositoryFactory, IEventBus eventPublisher, ILogger<SagaManager> logger)
         {
-            _sagaRepository = sagaRepository;
+            _repositoryFactory = repositoryFactory;
             _eventPublisher = eventPublisher;
+            _logger = logger;
         }
 
         /// <summary>
@@ -24,10 +28,12 @@
         /// <param name="steps">saga steps.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> saga instance.</returns>
-        public async Task<Saga> CreateAsync(IEnumerable<ISagaRequestBody> steps = default, CancellationToken cancellationToken = default)
+        public async Task<Saga> CreateAsync(IEnumerable<object> steps = default, CancellationToken cancellationToken = default)
         {
             var saga = new Saga(steps);
-            await _sagaRepository.AddSagaAsync(saga, cancellationToken);
+            using var session = _repositoryFactory.OpenSession();
+            var sagaRepository = session.ConstructSagaRepository();
+            await sagaRepository.AddSagaAsync(saga, cancellationToken);
             return saga;
         }
 
@@ -44,37 +50,92 @@
                 throw new ArgumentNullException(nameof(saga));
             }
 
-            if (saga.Status != SagaStatusEnum.Created)
+            if (saga.State != SagaStateEnum.Created)
             {
                 throw new ArgumentException("The saga has been created before.");
             }
 
             var sagaEvents = saga.Start();
-            await _sagaRepository.UpdateSagaByIdAsync(saga, cancellationToken);
+
+            using var session = _repositoryFactory.OpenSession();
+            session.StartTransaction();
+
+            var sagaRepository = session.ConstructSagaRepository();
+            var eventLogRepository = session.ConstructEventLogRepository();
+
+            try
+            {
+                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+                if (sagaEvents != null)
+                {
+                    await eventLogRepository.SaveEventAsync(sagaEvents, cancellationToken);
+                }
+
+                session.CommitTransaction();
+            }
+            catch (Exception ex)
+            {
+                session.RollbackTransaction();
+                _logger.LogError(ex, $"Failed to save the saga {saga}");
+                throw;
+            }
 
             if (sagaEvents != null)
             {
-                sagaEvents.ForEach(i => _eventPublisher.Publish(i, cancellationToken));
+                foreach (var @event in sagaEvents)
+                {
+                    await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
+                    _eventPublisher.Publish(@event, cancellationToken);
+                    await eventLogRepository.MarkEventAsPublishedAsync(@event.Id);
+                }
             }
         }
 
         /// <summary>
         /// Transit to new saga step.
-        /// if sagaEvent is failed, will start excute compentation step.
+        /// if sagaEvent is failed, will start execute compentation step.
         /// </summary>
         /// <param name="sagaEvent">the event of saga step.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task TransitAsync(SagaEvent sagaEvent, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine($"{sagaEvent.EventType} - Succeeded: {sagaEvent.Succeeded}");
-            var saga = await _sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
-            await _sagaRepository.UpdateSagaByIdAsync(saga);
-            var nextStepEvent = saga.ProcessEvent(sagaEvent);
+            _logger.LogInformation($"{sagaEvent.EventType} - Succeeded: {sagaEvent.Succeeded}");
 
-            if (nextStepEvent != null)
+            using var session = _repositoryFactory.OpenSession();
+            session.StartTransaction();
+            var sagaRepository = session.ConstructSagaRepository();
+            var eventLogRepository = session.ConstructEventLogRepository();
+
+            var saga = await sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
+            var nextStepEvents = saga.ProcessEvent(sagaEvent);
+
+            try
             {
-                nextStepEvent.ForEach(i => _eventPublisher.Publish(i, cancellationToken));
+                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+
+                if (nextStepEvents != null)
+                {
+                    await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
+                }
+
+                session.CommitTransaction();
+            }
+            catch (Exception ex)
+            {
+                session.RollbackTransaction();
+                _logger.LogError(ex, $"Failed to save the saga {saga}");
+                throw;
+            }
+
+            if (nextStepEvents != null)
+            {
+                foreach (var @event in nextStepEvents)
+                {
+                    await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
+                    _eventPublisher.Publish(@event, cancellationToken);
+                    await eventLogRepository.MarkEventAsPublishedAsync(@event.Id);
+                }
             }
         }
     }

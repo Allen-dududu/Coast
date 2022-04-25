@@ -1,4 +1,4 @@
-﻿namespace Coast.Core.Extensions
+﻿namespace Coast.Core
 {
     using System;
     using System.Linq;

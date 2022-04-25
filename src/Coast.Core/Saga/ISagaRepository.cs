@@ -1,4 +1,4 @@
-﻿namespace Coast.Core.Saga
+﻿namespace Coast.Core
 {
     using System;
     using System.Collections.Generic;
@@ -22,7 +22,7 @@
         /// <param name="saga">the data of the saga.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public Task UpdateSagaByIdAsync(Saga saga, CancellationToken cancellationToken = default);
+        public Task UpdateSagaAsync(Saga saga, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// GetSaga by saga id.

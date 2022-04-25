@@ -1,10 +1,10 @@
-﻿namespace Coast.Core.Saga
+﻿namespace Coast.Core
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
 
-    public enum SagaStepStatusEnum
+    public enum SagaStepStateEnum
     {
         Awaiting = 0,
         Started = 1,
