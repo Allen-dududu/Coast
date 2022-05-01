@@ -1,5 +1,6 @@
 ﻿namespace Coast.Core
 {
+    using Coast.Core.Util;
     using System;
     using System.Collections.Generic;
     using System.Net.NetworkInformation;
@@ -85,7 +86,7 @@
                     return _snowflakeId;
                 }
 
-                if (!long.TryParse(Environment.GetEnvironmentVariable("Coast_WORKERID", EnvironmentVariableTarget.Machine), out var workerId))
+                if (!long.TryParse(Const.WorkerId, out var workerId))
                 {
                     workerId = IdUtil.GenerateWorkerId(MaxWorkerId);
                 }

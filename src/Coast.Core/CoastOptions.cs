@@ -11,6 +11,10 @@ namespace Coast.Core
         /// </summary>
         public int FailedRetryCount { get; set; }
 
+        public string DomainName { get; set; }
+
+        public string? WorkerId { get; set; }
+
         internal IList<Action<IServiceCollection>> Extensions { get; } = new List<Action<IServiceCollection>>();
 
         public CoastOptions()

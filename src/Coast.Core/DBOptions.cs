@@ -14,7 +14,7 @@
         public string TableNamePrefix { get; set; } = DefaultSchema;
 
         /// <summary>
-        /// Data version
+        /// Data version.
         /// </summary>
         internal string Version { get; set; } = "v1";
 

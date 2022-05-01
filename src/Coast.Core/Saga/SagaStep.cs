@@ -8,7 +8,7 @@
 
     public class SagaStep
     {
-        public SagaStep(long correlationId, object sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public SagaStep(long correlationId, ISagaRequest sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
         {
             if (executeOrder < 0)
             {
@@ -22,7 +22,7 @@
             HasCompensation = hasCompensation;
         }
 
-        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
         {
             if (executeOrder < 0)
             {

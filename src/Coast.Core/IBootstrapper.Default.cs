@@ -49,9 +49,13 @@
                 throw e;
             }
 
+            var eventBus = _serviceProvider.GetRequiredService<IEventBus>();
+            var option = _serviceProvider.GetRequiredService<CoastOptions>();
+            eventBus.SubscribeDynamic<SagaCallBackEventHandler>(option.DomainName);
+
             stoppingToken.Register(() =>
             {
-                _logger.LogDebug("### CAP background task is stopping.");
+                _logger.LogDebug("### Coast background task is stopping.");
 
                 foreach (var item in _processors)
                 {
