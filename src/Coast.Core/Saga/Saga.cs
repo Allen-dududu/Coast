@@ -1,7 +1,8 @@
-﻿namespace Coast.Core.Saga
+﻿namespace Coast.Core
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations.Schema;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -13,7 +14,7 @@
         /// Initializes a new instance of the <see cref="Saga"/> class.
         /// </summary>
         /// <param name="steps">Saga Steps.</param>
-        public Saga(IEnumerable<ISagaRequestBody> steps)
+        public Saga(IEnumerable<object> steps)
         {
             SagaSteps.AddRange(steps.Select(i => new SagaStep(Id, i)));
         }
@@ -27,11 +28,11 @@
 
         public long Id { get; private set; } = SnowflakeId.Default().NextId();
 
-        public SagaStatusEnum Status { get; private set; } = SagaStatusEnum.Created;
+        public SagaStateEnum State { get; private set; } = SagaStateEnum.Created;
 
         public DateTime CreateTime { get; private set; }
 
-        public long CurrenExecuteOrder { get; private set; }
+        public int CurrenExecuteOrder { get; private set; }
 
         public string? AbortingReason { get; set; }
 
@@ -57,7 +58,6 @@
                 }
 
                 return SagaStepGroups[idx].Select(s => s).ToList();
-
             }
         }
 
@@ -83,9 +83,9 @@
             }
         }
 
-        public List<SagaStep> SagaSteps { get; private set; } = new List<SagaStep>();
+        public List<SagaStep> SagaSteps { get; set; } = new List<SagaStep>();
 
-        public Saga AddStep(ISagaRequestBody sagaRequest, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public Saga AddStep(object sagaRequest, bool hasCompensation = default, int executeOrder = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executeOrder));
             return this;
@@ -101,7 +101,7 @@
         {
             if (SagaSteps.Count == 0)
             {
-                Status = SagaStatusEnum.Completed;
+                State = SagaStateEnum.Completed;
                 return null;
             }
 
@@ -122,22 +122,22 @@
 
             var sageStepsGroups = SagaSteps.GroupBy(i => i.ExecuteOrder).ToList();
 
-            if (Status == SagaStatusEnum.Created && SagaSteps.Any())
+            if (State == SagaStateEnum.Created && SagaSteps.Any())
             {
                 var firstGroup = sageStepsGroups[0];
                 CurrenExecuteOrder = firstGroup.First().ExecuteOrder;
-                Status = SagaStatusEnum.Started;
+                State = SagaStateEnum.Started;
 
                 foreach (var step in firstGroup)
                 {
-                    step.Status = SagaStepStatusEnum.Started;
+                    step.State = SagaStepStateEnum.Started;
                 }
 
                 return firstGroup.Select(i => i.GetStepEvents(this.Id)).ToList();
             }
 
-            Status = SagaStatusEnum.Aborted;
-            AbortingReason = "Saga status is invalid or there is no steps defined in the Saga.";
+            State = SagaStateEnum.Aborted;
+            AbortingReason = "Saga State is invalid or there is no steps defined in the Saga.";
             return null;
         }
 
@@ -151,43 +151,43 @@
 
             if (@sagaEvent.Succeeded)
             {
-                currentStep.Status = currentStep.Status switch
+                currentStep.State = currentStep.State switch
                 {
-                    SagaStepStatusEnum.Started => SagaStepStatusEnum.Succeeded,
-                    SagaStepStatusEnum.Compensating => SagaStepStatusEnum.Compensated,
+                    SagaStepStateEnum.Started => SagaStepStateEnum.Succeeded,
+                    SagaStepStateEnum.Compensating => SagaStepStateEnum.Compensated,
                     _ => throw new InvalidOperationException()
                 };
             }
             else
             {
-                if (currentStep.Status == SagaStepStatusEnum.Started)
+                if (currentStep.State == SagaStepStateEnum.Started)
                 {
                     CancelSubsequentSteps();
                 }
 
-                currentStep.Status = currentStep.Status switch
+                currentStep.State = currentStep.State switch
                 {
-                    SagaStepStatusEnum.Started => SagaStepStatusEnum.Failed,
-                    SagaStepStatusEnum.Compensating => SagaStepStatusEnum.Failed,
+                    SagaStepStateEnum.Started => SagaStepStateEnum.Failed,
+                    SagaStepStateEnum.Compensating => SagaStepStateEnum.Failed,
                     _ => throw new InvalidOperationException()
                 };
             }
 
-            if (CurrentSagaStepGroup.All(i => i.Status > SagaStepStatusEnum.Started))
+            if (CurrentSagaStepGroup.All(i => i.State > SagaStepStateEnum.Started))
             {
                 List<SagaEvent>? @firingEvents = null;
-                switch (currentStep.Status)
+                switch (currentStep.State)
                 {
-                    case SagaStepStatusEnum.Succeeded:
+                    case SagaStepStateEnum.Succeeded:
                         @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
                         break;
-                    case SagaStepStatusEnum.Compensated:
-                    case SagaStepStatusEnum.Failed:
+                    case SagaStepStateEnum.Compensated:
+                    case SagaStepStateEnum.Failed:
                         @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
                         break;
                 }
 
-                UpdateSagaStatus();
+                UpdateSagaState();
 
                 return @firingEvents ?? null;
             }
@@ -204,7 +204,7 @@
                 return null;
             }
 
-            next.ForEach(i => i.Status = SagaStepStatusEnum.Started);
+            next.ForEach(i => i.State = SagaStepStateEnum.Started);
             CurrenExecuteOrder = next[0].ExecuteOrder;
             return next;
         }
@@ -218,7 +218,7 @@
                 if (prev.Any(i => i.HasCompensation))
                 {
                     var needCompensate = prev.Where(p => p.HasCompensation).ToList();
-                    needCompensate.ForEach(i => i.Status = SagaStepStatusEnum.Compensating);
+                    needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
                     return needCompensate;
                 }
 
@@ -235,32 +235,32 @@
             {
                 for (var idx = currentStepIdx + 1; idx < SagaStepGroups.Count; idx++)
                 {
-                    SagaStepGroups[idx].ToList().ForEach(i => i.Status = SagaStepStatusEnum.Cancelled);
+                    SagaStepGroups[idx].ToList().ForEach(i => i.State = SagaStepStateEnum.Cancelled);
                 }
             }
         }
 
-        private void UpdateSagaStatus()
+        private void UpdateSagaState()
         {
-            if (SagaSteps.All(s => s.Status == SagaStepStatusEnum.Succeeded))
+            if (SagaSteps.All(s => s.State == SagaStepStateEnum.Succeeded))
             {
-                Status = SagaStatusEnum.Completed;
+                State = SagaStateEnum.Completed;
             }
             else if (SagaSteps.All(s =>
-                        s.Status == SagaStepStatusEnum.Started ||
-                        s.Status == SagaStepStatusEnum.Awaiting))
+                        s.State == SagaStepStateEnum.Started ||
+                        s.State == SagaStepStateEnum.Awaiting))
             {
-                Status = SagaStatusEnum.Started;
+                State = SagaStateEnum.Started;
             }
-            else if (SagaSteps.All(s => s.Status == SagaStepStatusEnum.Failed ||
-                                    s.Status == SagaStepStatusEnum.Compensated ||
-                                    s.Status == SagaStepStatusEnum.Cancelled))
+            else if (SagaSteps.All(s => s.State == SagaStepStateEnum.Failed ||
+                                    s.State == SagaStepStateEnum.Compensated ||
+                                    s.State == SagaStepStateEnum.Cancelled))
             {
-                Status = SagaStatusEnum.Aborted;
+                State = SagaStateEnum.Aborted;
             }
             else
             {
-                Status = SagaStatusEnum.Aborting;
+                State = SagaStateEnum.Aborting;
             }
         }
 

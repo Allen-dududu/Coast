@@ -5,7 +5,7 @@
     using Coast.Core.EventBus;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
-    public static class ServiceCollectionExtension
+    public static class SetUpExtension
     {
         public static CoastBuild AddCosat(this IServiceCollection services, Action<CoastOptions> setupAction)
         {

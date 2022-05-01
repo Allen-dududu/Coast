@@ -6,6 +6,7 @@ namespace Coast.PostgreSql
     using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.MigrationManager;
+    using Coast.PostgreSql.Connection;
     using Dapper;
     using Microsoft.Extensions.Options;
     using Npgsql;
@@ -15,15 +16,15 @@ namespace Coast.PostgreSql
     /// </summary>
     public class CoastDBInitializer : ICoastDBInitializer
     {
-        private readonly IOptions<DBOptions> _options;
+        private readonly IConnectionProvider _connectionProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CoastDBInitializer"/> class.
         /// </summary>
         /// <param name="_options">Db configuration.</param>
-        public CoastDBInitializer(IOptions<DBOptions> options)
+        public CoastDBInitializer(IConnectionProvider connectionProvider)
         {
-            _options = options;
+            _connectionProvider = connectionProvider;
         }
 
         /// <inheritdoc/>
@@ -35,7 +36,7 @@ namespace Coast.PostgreSql
             }
 
             var sql = CreateTableSql();
-            using var connection = PostgreSqlDataConnection.OpenConnection(_options.Value.ConnectionString);
+            using var connection = _connectionProvider.GetAdventureWorksConnection();
             await connection.ExecuteAsync(sql).ConfigureAwait(false);
         }
 
@@ -53,7 +54,7 @@ CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
 
 CREATE TABLE IF NOT EXISTS ""Coast_Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
-    ""Status"" int NOT NULL,
+    ""State"" int NOT NULL,
     ""CurrentStep"" bigint NULL,
     ""CreateTime"" TIMESTAMP NULL
 ) ;
@@ -63,7 +64,7 @@ CREATE TABLE IF NOT EXISTS ""Coast_SagaStep""(
     ""CorrelationId"" bigint NOT NULL,
     ""EventName"" VARCHAR(250) NOT NULL,
     ""StepType"" int NOT NULL,
-    ""Status""   int NOT NULL,
+    ""State""   int NOT NULL,
     ""RequestBody"" text NULL,
     ""FailedReason"" text NULL,
     ""CreateTime"" TIMESTAMP NULL,

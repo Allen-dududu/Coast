@@ -5,8 +5,8 @@ namespace Coast.RabbitMQ
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core;
     using Coast.Core.EventBus;
-    using Coast.Core.Extensions;
     using global::RabbitMQ.Client;
     using global::RabbitMQ.Client.Events;
     using global::RabbitMQ.Client.Exceptions;

@@ -1,10 +1,10 @@
-﻿namespace Coast.Core.Saga
+﻿namespace Coast.Core
 {
     using System;
     using System.Collections.Generic;
     using System.Text;
 
-    public enum SagaStatusEnum
+    public enum SagaStateEnum
     {
         Created = 1,
         Started = 2,
