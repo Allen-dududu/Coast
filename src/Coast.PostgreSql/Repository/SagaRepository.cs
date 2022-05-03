@@ -15,8 +15,8 @@
     {
         private const string InsertSagaSql =
 @"INSERT INTO ""Coast_Saga"" 
-(""Id"", ""State"", ""CreateTime"") 
-VALUES (@Id, @State, @CreateTime); ";
+(""Id"", ""State"", ""CreateTime"", ""CurrentStep"") 
+VALUES (@Id, @State, @CreateTime, @CurrentStep ); ";
 
         private const string insertSagaStepSql =
 @"INSERT INTO ""Coast_Saga"" 
@@ -61,7 +61,7 @@ WHERE ""Id"" = @Id";
             var sagaId = SnowflakeId.Default().NextId();
             await _connection.ExecuteAsync(
                     InsertSagaSql,
-                    new { Id = sagaId, State = SagaStateEnum.Started, CreateTime = DateTime.UtcNow },
+                    new { Id = sagaId, State = SagaStateEnum.Started, CreateTime = DateTime.UtcNow, CurrentStep = saga.CurrenExecuteOrder },
                     transaction: _transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)

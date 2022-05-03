@@ -48,9 +48,9 @@ CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
 	""CorrelationId"" bigint NOT NULL,
 	""StepId"" bigint NOT NULL,
 	""StepType"" int NULL,
-    ""CreateTime"" TIMESTAMP NULL,
-    UNIQUE (""CorrelationId"", ""StepId"", ""StepType"")
 );
+CREATE UNIQUE INDEX CONCURRENTLY ""Barrier_Id""
+ON ""Coast_Barrier"" (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"");
 
 CREATE TABLE IF NOT EXISTS ""Coast_Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,

@@ -26,5 +26,8 @@
 
         [JsonProperty]
         public string EventName { get; set; }
+
+        [JsonProperty]
+        public TransactionTypeEnum TransactionType { get; set; }
     }
 }

@@ -71,9 +71,10 @@
             {
                 EventName = EventName,
                 SagaStepId = Id,
-                EventType = SagaStepTypeEnum.Commit,
+                EventType = TransactionStepTypeEnum.Commit,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
+                TransactionType = TransactionTypeEnum.Saga,
             };
         }
 
@@ -88,9 +89,10 @@
             {
                 EventName = EventName,
                 SagaStepId = Id,
-                EventType = SagaStepTypeEnum.Compensate,
+                EventType = TransactionStepTypeEnum.Compensate,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
+                TransactionType = TransactionTypeEnum.Saga,
             };
         }
     }

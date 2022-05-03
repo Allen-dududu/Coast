@@ -25,12 +25,18 @@ namespace Coast.RabbitMQ
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly IServiceProvider _serviceProvider;
         private readonly int _retryCount;
-
+        private readonly IProcessSagaEvent _processSagaEvent;
         private IModel _consumerChannel;
         private string _queueName;
 
-        public EventBusRabbitMQ(IRabbitMQPersistentConnection persistentConnection, ILogger<EventBusRabbitMQ> logger,
-            IServiceProvider serviceProvider, IEventBusSubscriptionsManager subsManager, string queueName = null, int retryCount = 5)
+        public EventBusRabbitMQ(
+            IRabbitMQPersistentConnection persistentConnection,
+            ILogger<EventBusRabbitMQ> logger,
+            IServiceProvider serviceProvider,
+            IEventBusSubscriptionsManager subsManager,
+            string queueName = null,
+            int retryCount = 5,
+            IProcessSagaEvent processSagaEvent = null)
         {
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -40,6 +46,7 @@ namespace Coast.RabbitMQ
             _serviceProvider = serviceProvider;
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
+            _processSagaEvent = processSagaEvent;
         }
 
         private void SubsManager_OnEventRemoved(object sender, string eventName)
@@ -211,11 +218,14 @@ namespace Coast.RabbitMQ
                     throw new InvalidOperationException($"Fake exception requested: \"{message}\"");
                 }
 
-                await ProcessEvent(eventName, message);
+                await _processSagaEvent.ProcessEvent(eventName, message);
             }
             catch (Exception ex)
             {
+                _consumerChannel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
                 _logger.LogWarning(ex, "----- ERROR Processing message \"{Message}\"", message);
+
+                return;
             }
 
             // Even on exception we take the message off the queue.

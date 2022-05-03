@@ -9,7 +9,7 @@
 
         public long SagaStepId { get; set; }
 
-        public SagaStepTypeEnum EventType { get; set; }
+        public TransactionStepTypeEnum EventType { get; set; }
 
         public string RequestBody { get; set; }
 

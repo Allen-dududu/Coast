@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -9,7 +10,7 @@
     using Coast.Core.EventBus;
     using Microsoft.Extensions.Logging;
 
-    public class SagaManager
+    public class SagaManager : ISagaManager
     {
         private readonly IRepositoryFactory _repositoryFactory;
         private readonly IEventBus _eventPublisher;
@@ -96,14 +97,15 @@
         /// if sagaEvent is failed, will start execute compentation step.
         /// </summary>
         /// <param name="sagaEvent">the event of saga step.</param>
+        /// <param name="transaction"></param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task TransitAsync(SagaEvent sagaEvent, CancellationToken cancellationToken = default)
+        public async Task TransitAsync(SagaEvent sagaEvent, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"{sagaEvent.EventType} - Succeeded: {sagaEvent.Succeeded}");
 
             using var session = _repositoryFactory.OpenSession();
-            session.StartTransaction();
+            session.StartTransaction(transaction);
             var sagaRepository = session.ConstructSagaRepository();
             var eventLogRepository = session.ConstructEventLogRepository();
 

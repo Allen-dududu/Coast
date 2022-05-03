@@ -5,9 +5,9 @@
     using System.Text;
 
     /// <summary>
-    /// Enum of SagaStep Type.
+    /// Enum of Step Type.
     /// </summary>
-    public enum SagaStepTypeEnum
+    public enum TransactionStepTypeEnum
     {
          Commit = 0,
          Compensate = 1,

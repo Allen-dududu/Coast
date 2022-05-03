@@ -2,12 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Text;
     using Coast.Core.EventBus.IntegrationEventLog;
 
     public interface IWapperSession : IDisposable
     {
-        public void StartTransaction();
+        public IDbTransaction StartTransaction(IDbTransaction transaction = null);
 
         public void CommitTransaction();
 

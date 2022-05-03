@@ -34,7 +34,9 @@
                 serviceExtension(services);
             }
 
-            services.AddTransient<SagaCallBackEventHandler>();
+            services.TryAddTransient<SagaCallBackEventHandler>();
+            services.TryAddTransient<ISagaManager, SagaManager>();
+            services.TryAddTransient<IProcessSagaEvent, ProcessSagaEvent>();
 
             // Startup and Hosted
             services.AddSingleton<Bootstrapper>();
