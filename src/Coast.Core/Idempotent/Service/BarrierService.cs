@@ -17,9 +17,15 @@
             _branchBarrierRepository = branchBarrierRepository;
         }
 
-        public BranchBarrier CreateBranchBarrier(string transType, string gid, string branchID, string op, ILogger? logger = null)
+        public BranchBarrier CreateBranchBarrier(TransactionTypeEnum transactionType, long correlationId, long sagaStepId, TransactionStepTypeEnum eventType, ILogger? logger = null)
         {
-            throw new NotImplementedException();
+            if (logger is null)
+            {
+                logger = _logger;
+            }
+
+            var bb = new BranchBarrier(transactionType, correlationId, sagaStepId, eventType, _branchBarrierRepository, logger);
+            return bb;
         }
 
         public BranchBarrier CreateBranchBarrier(SagaEvent @event, ILogger logger = null)
@@ -35,7 +41,6 @@
             }
 
             var bb = new BranchBarrier(@event.TransactionType, @event.CorrelationId, @event.SagaStepId, @event.EventType, _branchBarrierRepository, logger);
-
             return bb;
         }
     }

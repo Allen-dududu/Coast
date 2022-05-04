@@ -14,7 +14,7 @@
         /// Initializes a new instance of the <see cref="Saga"/> class.
         /// </summary>
         /// <param name="steps">Saga Steps.</param>
-        public Saga(IEnumerable<ISagaRequest> steps)
+        public Saga(IEnumerable<IEventRequestBody> steps)
         {
             SagaSteps.AddRange(steps.Select(i => new SagaStep(Id, i)));
         }
@@ -85,7 +85,7 @@
 
         public List<SagaStep> SagaSteps { get; set; } = new List<SagaStep>();
 
-        public Saga AddStep(ISagaRequest sagaRequest, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public Saga AddStep(IEventRequestBody sagaRequest, bool hasCompensation = default, int executeOrder = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executeOrder));
             return this;

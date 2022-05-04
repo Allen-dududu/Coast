@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace Coast.PostgreSql.Connection
+namespace Coast.Core
 {
     public interface IConnectionProvider
     {

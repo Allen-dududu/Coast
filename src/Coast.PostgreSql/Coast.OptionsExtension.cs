@@ -6,6 +6,7 @@ namespace Coast.PostgreSql
     using Coast.Core.DataLayer;
     using Coast.Core.Idempotent;
     using Coast.Core.MigrationManager;
+    using Coast.PostgreSql.Connection;
     using Coast.PostgreSql.Repository;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -30,9 +31,12 @@ namespace Coast.PostgreSql
             }
 
             options.RegisterExtension(serviceCollection => serviceCollection.Configure<DBOptions>(db => db.ConnectionString = connectionString));
+            options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IConnectionProvider, ConnectionProvider>());
             options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<ICoastDBInitializer, CoastDBInitializer>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IRepositoryFactory, RepositoryFactory>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IBranchBarrierRepository, BranchBarrierRepository>());
+
+            
 
             return options;
         }

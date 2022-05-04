@@ -51,7 +51,7 @@
 
             var eventBus = _serviceProvider.GetRequiredService<IEventBus>();
             var option = _serviceProvider.GetRequiredService<CoastOptions>();
-            eventBus.SubscribeDynamic<SagaCallBackEventHandler>(option.DomainName);
+            eventBus.Subscribe<SagaCallBackEventHandler>(option.DomainName);
 
             stoppingToken.Register(() =>
             {

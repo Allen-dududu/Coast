@@ -29,7 +29,7 @@
         /// <param name="steps">saga steps.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> saga instance.</returns>
-        public async Task<Saga> CreateAsync(IEnumerable<ISagaRequest> steps = default, CancellationToken cancellationToken = default)
+        public async Task<Saga> CreateAsync(IEnumerable<IEventRequestBody> steps = default, CancellationToken cancellationToken = default)
         {
             var saga = new Saga(steps);
             using var session = _repositoryFactory.OpenSession();

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Data;
+    using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.PostgreSql.Connection;
 

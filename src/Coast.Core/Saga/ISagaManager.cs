@@ -7,7 +7,7 @@
 
     public interface ISagaManager
     {
-        Task<Saga> CreateAsync(IEnumerable<ISagaRequest> steps = null, CancellationToken cancellationToken = default);
+        Task<Saga> CreateAsync(IEnumerable<IEventRequestBody> steps = null, CancellationToken cancellationToken = default);
         Task StartAsync(Saga saga, CancellationToken cancellationToken = default);
         Task TransitAsync(SagaEvent sagaEvent, IDbTransaction transaction = null, CancellationToken cancellationToken = default);
     }

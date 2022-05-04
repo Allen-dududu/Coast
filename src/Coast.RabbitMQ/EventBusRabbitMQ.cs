@@ -116,19 +116,9 @@ namespace Coast.RabbitMQ
             }
         }
 
-        public void SubscribeDynamic<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
-        {
-            _logger.LogInformation("Subscribing to dynamic event {EventName} with {EventHandler}", eventName, typeof(TH).GetGenericTypeName());
-
-            DoInternalSubscription(eventName);
-            _subsManager.AddDynamicSubscription<TH>(eventName);
-            StartBasicConsume();
-        }
-
         public void Subscribe<T, TH>()
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>
+            where T : IEventRequestBody
+            where TH : ISagaHandler<T>
         {
             var eventName = _subsManager.GetEventKey<T>();
             DoInternalSubscription(eventName);
@@ -137,6 +127,48 @@ namespace Coast.RabbitMQ
 
             _subsManager.AddSubscription<T, TH>();
             StartBasicConsume();
+        }
+
+        public void Subscribe<TH>(string eventName) where TH : ISagaHandler
+        {
+            DoInternalSubscription(eventName);
+
+            _logger.LogInformation("Subscribing to event {EventName} with {EventHandler}", eventName, typeof(TH).GetGenericTypeName());
+
+            _subsManager.AddSubscription<TH>(eventName);
+            StartBasicConsume();
+        }
+
+        public void Unsubscribe<TH>(string eventName) where TH : ISagaHandler
+        {
+            _subsManager.RemoveSubscription<TH>(eventName);
+        }
+
+        public void Unsubscribe<T, TH>()
+            where T : IEventRequestBody
+            where TH : ISagaHandler<T>
+        {
+            var eventName = _subsManager.GetEventKey<T>();
+
+            _logger.LogInformation("Unsubscribing from event {EventName}", eventName);
+
+            _subsManager.RemoveSubscription<T, TH>();
+        }
+
+        //public void UnsubscribeDynamic<TH>(string eventName)
+        //    where TH : IDynamicIntegrationEventHandler
+        //{
+        //    _subsManager.RemoveDynamicSubscription<TH>(eventName);
+        //}
+
+        public void Dispose()
+        {
+            if (_consumerChannel != null)
+            {
+                _consumerChannel.Dispose();
+            }
+
+            _subsManager.Clear();
         }
 
         private void DoInternalSubscription(string eventName)
@@ -156,33 +188,6 @@ namespace Coast.RabbitMQ
                                       routingKey: eventName);
                 }
             }
-        }
-
-        public void Unsubscribe<T, TH>()
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>
-        {
-            var eventName = _subsManager.GetEventKey<T>();
-
-            _logger.LogInformation("Unsubscribing from event {EventName}", eventName);
-
-            _subsManager.RemoveSubscription<T, TH>();
-        }
-
-        public void UnsubscribeDynamic<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
-        {
-            _subsManager.RemoveDynamicSubscription<TH>(eventName);
-        }
-
-        public void Dispose()
-        {
-            if (_consumerChannel != null)
-            {
-                _consumerChannel.Dispose();
-            }
-
-            _subsManager.Clear();
         }
 
         private void StartBasicConsume()
@@ -266,41 +271,41 @@ namespace Coast.RabbitMQ
             return channel;
         }
 
-        private async Task ProcessEvent(string eventName, string message)
-        {
-            _logger.LogTrace("Processing RabbitMQ event: {EventName}", eventName);
+        //private async Task ProcessEvent(string eventName, string message)
+        //{
+        //    _logger.LogTrace("Processing RabbitMQ event: {EventName}", eventName);
 
-            if (_subsManager.HasSubscriptionsForEvent(eventName))
-            {
-                var subscriptions = _subsManager.GetHandlersForEvent(eventName);
-                foreach (var subscription in subscriptions)
-                {
-                    if (subscription.IsDynamic)
-                    {
-                        var handler = _serviceProvider.GetService(subscription.HandlerType) as IDynamicIntegrationEventHandler;
-                        if (handler == null) continue;
-                        dynamic eventData = JObject.Parse(message);
+        //    if (_subsManager.HasSubscriptionsForEvent(eventName))
+        //    {
+        //        var subscriptions = _subsManager.GetHandlersForEvent(eventName);
+        //        foreach (var subscription in subscriptions)
+        //        {
+        //            if (subscription.IsDynamic)
+        //            {
+        //                var handler = _serviceProvider.GetService(subscription.HandlerType) as IDynamicIntegrationEventHandler;
+        //                if (handler == null) continue;
+        //                dynamic eventData = JObject.Parse(message);
 
-                        await Task.Yield();
-                        await handler.Handle(eventData);
-                    }
-                    else
-                    {
-                        var handler = _serviceProvider.GetService(subscription.HandlerType);
-                        if (handler == null) continue;
-                        var eventType = _subsManager.GetEventTypeByName(eventName);
-                        var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
-                        var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
+        //                await Task.Yield();
+        //                await handler.Handle(eventData);
+        //            }
+        //            else
+        //            {
+        //                var handler = _serviceProvider.GetService(subscription.HandlerType);
+        //                if (handler == null) continue;
+        //                var eventType = _subsManager.GetEventTypeByName(eventName);
+        //                var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
+        //                var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
 
-                        await Task.Yield();
-                        await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
-                    }
-                }
-            }
-            else
-            {
-                _logger.LogWarning("No subscription for RabbitMQ event: {EventName}", eventName);
-            }
-        }
+        //                await Task.Yield();
+        //                await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        _logger.LogWarning("No subscription for RabbitMQ event: {EventName}", eventName);
+        //    }
+        //}
     }
 }

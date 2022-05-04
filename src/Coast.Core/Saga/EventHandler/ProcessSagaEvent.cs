@@ -8,6 +8,7 @@
     using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using static Coast.Core.EventBus.InMemoryEventBusSubscriptionsManager;
 
     public class ProcessSagaEvent : IProcessSagaEvent
     {
@@ -34,25 +35,26 @@
                 var subscriptions = _subsManager.GetHandlersForEvent(eventName);
                 foreach (var subscription in subscriptions)
                 {
-                    if (subscription.IsDynamic)
-                    {
-                        var handler = _serviceProvider.GetService(subscription.HandlerType) as IDynamicIntegrationEventHandler;
-                        if (handler == null) continue;
-                        dynamic eventData = JObject.Parse(message);
+                    var handler = _serviceProvider.GetService(subscription.HandlerType);
+                    if (handler == null) continue;
+                    dynamic eventData = JObject.Parse(message);
+                    var eventType = _subsManager.GetEventTypeByName(eventName);
 
+                    if (eventData.TransactionStepTypeEnum == TransactionStepTypeEnum.Commit)
+                    {
+                        (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, message, subscription);
                         await Task.Yield();
-                        await handler.Handle(eventData, null);
+                        await (Task)concreteType.GetMethod("Commit").Invoke(handler, new object[] { eventDataObj });
+                    }
+                    else if (eventData.TransactionStepTypeEnum == TransactionStepTypeEnum.Compensate)
+                    {
+                        (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, message, subscription);
+                        await Task.Yield();
+                        await (Task)concreteType.GetMethod("Cancel").Invoke(handler, new object[] { eventDataObj });
                     }
                     else
                     {
-                        var handler = _serviceProvider.GetService(subscription.HandlerType);
-                        if (handler == null) continue;
-                        var eventType = _subsManager.GetEventTypeByName(eventName);
-                        var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
-                        var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-
-                        await Task.Yield();
-                        await(Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent, null });
+                        _logger.LogWarning("No Correct TransactionStepTypeEnum for saga event: {EventName}", eventName);
                     }
                 }
             }
@@ -62,9 +64,22 @@
             }
         }
 
-        private async Task IdempotentProcessEvent(string eventName, string message)
+        private (object eventDataObj, Type concreteType) ConvertEventDataAndConcreteType(Type eventType,string message, SubscriptionInfo subscription)
         {
+            object eventDataObj;
+            Type concreteType;
+            if (subscription.IsDynamic)
+            {
+                eventDataObj = JsonConvert.DeserializeObject(message, typeof(SagaEvent));
+                concreteType = typeof(ISagaHandler);
+            }
+            else
+            {
+                eventDataObj = JsonConvert.DeserializeObject(message, typeof(SagaEvent<>).MakeGenericType(eventType));
+                concreteType = typeof(ISagaHandler<>).MakeGenericType(eventType);
+            }
 
+            return (eventDataObj, concreteType);
         }
     }
 }

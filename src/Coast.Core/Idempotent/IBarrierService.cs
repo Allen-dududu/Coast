@@ -4,7 +4,7 @@ namespace Coast.Core
 
     public interface IBarrierService
     {
-        BranchBarrier CreateBranchBarrier(string transType, string gid, string branchID, string op, ILogger? logger = null);
+        BranchBarrier CreateBranchBarrier(TransactionTypeEnum transactionType, long correlationId, long sagaStepId, TransactionStepTypeEnum eventType, ILogger? logger = null);
 
         BranchBarrier CreateBranchBarrier(SagaEvent @event, ILogger? logger = null);
 
