@@ -11,9 +11,6 @@
 
         event EventHandler<string> OnEventRemoved;
 
-        //void AddDynamicSubscription<TH>(string eventName)
-        //   where TH : IDynamicIntegrationEventHandler;
-
         void AddSubscription<T, TH>()
            where T : IEventRequestBody
            where TH : ISagaHandler<T>;
@@ -27,9 +24,6 @@
 
         void RemoveSubscription<TH>(string eventName)
             where TH : ISagaHandler;
-
-        //void RemoveDynamicSubscription<TH>(string eventName)
-        //    where TH : IDynamicIntegrationEventHandler;
 
         bool HasSubscriptionsForEvent<T>() where T : IEventRequestBody;
 

@@ -12,8 +12,8 @@
     public class BranchBarrierRepository : IBranchBarrierRepository
     {
         private const string InsertIgnoreSql =
- @"INSERT INTO Coast_Barrier (""Id"", ""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""CreatedTime"")
-VALUES(@Id, @TransactionType, @CorrelationId, @StepId, @StepType, @CreatedTime) 
+ @"INSERT INTO Coast_Barrier (""Id"", ""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""CreationTime"")
+VALUES(@Id, @TransactionType, @CorrelationId, @StepId, @StepType, @CreationTime) 
 ON CONFLICT ""Barrier_Id"" 
 DO NOTHING;";
 
@@ -25,7 +25,7 @@ DO NOTHING;";
             {
                 affected = await db.ExecuteAsync(
                     InsertIgnoreSql,
-                    new { id = SnowflakeId.Default().NextId(),  TransactionType = transactionType, CorrelationId = correlationId, StepId = stepId, StepType = stepType, CreatedTime = DateTime.UtcNow },
+                    new { id = SnowflakeId.Default().NextId(),  TransactionType = transactionType, CorrelationId = correlationId, StepId = stepId, StepType = stepType, CreationTime = DateTime.UtcNow },
                     transaction: tx).ConfigureAwait(false);
             }
             catch (Exception ex)

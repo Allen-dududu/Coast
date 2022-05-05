@@ -1,31 +1,26 @@
-﻿namespace Coast.Core.EventBus
+﻿namespace Coast.Core
 {
     using System.Data;
     using System.Threading.Tasks;
-
-    public interface IIntegrationEventHandler<IRequestBody> : IIntegrationEventHandler where IRequestBody : IEventRequestBody
-    {
-        Task Commit(SagaEvent<IRequestBody> @event, IDbTransaction transaction = null);
-    }
 
     public interface ISagaHandler : ICommitEventHandler, ICancelEventHandler
     {
 
     }
 
-    public interface ISagaHandler<IRequestBody> : ICommitEventHandler, ICancelEventHandler
+    public interface ISagaHandler<T> : ICommitEventHandler<T>, ICancelEventHandler<T> where T : IEventRequestBody
     {
 
     }
 
-    public interface ICommitEventHandler<IRequestBody> : IIntegrationEventHandler where IRequestBody : IEventRequestBody
+    public interface ICommitEventHandler<T> where T : IEventRequestBody
     {
-        Task Commit(SagaEvent<IRequestBody> @event);
+        Task Commit(SagaEvent<T> @event);
     }
 
-    public interface ICancelEventHandler<IRequestBody> : IIntegrationEventHandler where IRequestBody : IEventRequestBody
+    public interface ICancelEventHandler<T> where T : IEventRequestBody
     {
-        Task Cancel(SagaEvent<IRequestBody> @event);
+        Task Cancel(SagaEvent<T> @event);
     }
 
     public interface ICommitEventHandler : IIntegrationEventHandler
@@ -39,6 +34,11 @@
     }
 
     public interface IIntegrationEventHandler
+    {
+
+    }
+
+    public interface IIntegrationEventHandler<IRequestBody> where IRequestBody : IEventRequestBody
     {
 
     }

@@ -44,35 +44,47 @@ namespace Coast.PostgreSql
         {
             var sql = $@"
 CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
+    ""Id"" bigint PRIMARY KEY NOT NULL,
     ""TransactionType"" int NOT NULL,
 	""CorrelationId"" bigint NOT NULL,
 	""StepId"" bigint NOT NULL,
 	""StepType"" int NULL,
+    ""CreationTime"" TIMESTAMP NULL
 );
-CREATE UNIQUE INDEX CONCURRENTLY ""Barrier_Id""
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ""Barrier_Id""
 ON ""Coast_Barrier"" (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"");
 
 CREATE TABLE IF NOT EXISTS ""Coast_Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
     ""State"" int NOT NULL,
     ""CurrentStep"" bigint NULL,
-    ""CreateTime"" TIMESTAMP NULL
+    ""CreationTime"" TIMESTAMP NULL
 ) ;
 
 CREATE TABLE IF NOT EXISTS ""Coast_SagaStep""(
 	""Id"" bigint NOT NULL,
     ""CorrelationId"" bigint NOT NULL,
     ""EventName"" VARCHAR(250) NOT NULL,
-    ""StepType"" int NOT NULL,
     ""State""   int NOT NULL,
+    ""HasCompensation"" bool NOT NULL,
     ""RequestBody"" text NULL,
     ""FailedReason"" text NULL,
-    ""CreateTime"" TIMESTAMP NULL,
+    ""CreationTime"" TIMESTAMP NULL,
+    ""ExecuteOrder"" int NOT NULL,
     ""PublishedTime"" TIMESTAMP NULL
 ) ;
-CREATE INDEX IF NOT EXISTS SagaStep_idx ON ""Coast_SagaStep"" (""CorrelationId"");"
-;
+CREATE INDEX IF NOT EXISTS SagaStep_idx ON ""Coast_SagaStep"" (""CorrelationId"");
 
+
+CREATE TABLE IF NOT EXISTS ""Coast_EventLog"" (
+    ""EventId"" bigint NOT NULL,
+    ""CreationTime"" TIMESTAMP NULL,
+    ""EventTypeName"" VARCHAR(250) NOT NULL,
+    ""Content"" text NULL,
+    ""State"" int NOT NULL,
+    ""TimesSent"" int NOT NULL
+)"
+;
             return sql;
         }
     }

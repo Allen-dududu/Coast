@@ -32,9 +32,6 @@
         public async Task<Saga> CreateAsync(IEnumerable<IEventRequestBody> steps = default, CancellationToken cancellationToken = default)
         {
             var saga = new Saga(steps);
-            using var session = _repositoryFactory.OpenSession();
-            var sagaRepository = session.ConstructSagaRepository();
-            await sagaRepository.AddSagaAsync(saga, cancellationToken);
             return saga;
         }
 
@@ -66,7 +63,7 @@
 
             try
             {
-                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+                await sagaRepository.AddSagaAsync(saga, cancellationToken);
                 if (sagaEvents != null)
                 {
                     await eventLogRepository.SaveEventAsync(sagaEvents, cancellationToken);

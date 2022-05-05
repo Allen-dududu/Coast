@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Text;
     using Coast.Core.EventBus;
+    using Coast.Core.Util;
     using Newtonsoft.Json;
 
     public class SagaStep
@@ -56,7 +57,7 @@
 
         public string? FailedReason { get; protected set; }
 
-        public DateTime CreateTime { get; protected set; }
+        public DateTime CreationTime { get; protected set; }
 
         public DateTime UpdateTime { get; protected set; }
 
@@ -75,6 +76,7 @@
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
+                DomainName = Const.DomainName,
             };
         }
 
@@ -93,6 +95,7 @@
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
+                DomainName = Const.DomainName,
             };
         }
     }

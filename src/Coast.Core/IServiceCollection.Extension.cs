@@ -34,6 +34,7 @@
                 serviceExtension(services);
             }
 
+            services.TryAddTransient<IBarrierService, DefaultBarrierService>();
             services.TryAddTransient<SagaCallBackEventHandler>();
             services.TryAddTransient<ISagaManager, SagaManager>();
             services.TryAddTransient<IProcessSagaEvent, ProcessSagaEvent>();

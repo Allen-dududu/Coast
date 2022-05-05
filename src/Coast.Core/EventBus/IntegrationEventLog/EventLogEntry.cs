@@ -9,11 +9,16 @@
 
     public class EventLogEntry
     {
+        public EventLogEntry()
+        {
+
+        }
+
         public EventLogEntry(IntegrationEvent @event)
         {
             EventId = @event.Id;
             CreationTime = @event.CreationDate;
-            EventTypeName = @event.GetType().FullName;
+            EventTypeName = @event.EventName ?? @event.GetType().FullName;
             Content = JsonSerializer.Serialize(@event, @event.GetType(), new JsonSerializerOptions
             {
                 WriteIndented = true

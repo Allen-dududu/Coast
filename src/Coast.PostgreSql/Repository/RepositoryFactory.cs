@@ -24,8 +24,9 @@
 
         public IWapperSession OpenSession(IDbConnection dbConnection = null)
         {
-            var connection = dbConnection ?? _connection;
-           return new WrapperSession(connection);
+            var connection = dbConnection ?? _connectionProvider.GetAdventureWorksConnection();
+            _connection = connection;
+            return new WrapperSession(connection);
         }
 
         public void Dispose()

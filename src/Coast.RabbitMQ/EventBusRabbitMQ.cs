@@ -72,31 +72,35 @@ namespace Coast.RabbitMQ
 
         public void Publish(IntegrationEvent @event, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var eventName = @event.EventName ?? @event.GetType().Name;
+            var message = JsonConvert.SerializeObject(@event);
+            _logger.LogTrace("Creating RabbitMQ channel to publish event: {EventId} ({EventName})", @event.Id, eventName);
+
+            SendAsync(@event.Id, eventName, message);
+        }
+
+        private void SendAsync(long eventId, string eventName, string message)
+        {
             if (!_persistentConnection.IsConnected)
             {
                 _persistentConnection.TryConnect();
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
-
             var policy = RetryPolicy.Handle<BrokerUnreachableException>()
                 .Or<SocketException>()
                 .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
                 {
-                    _logger.LogWarning(ex, "Could not publish event: {EventId} after {Timeout}s ({ExceptionMessage})", @event.Id, $"{time.TotalSeconds:n1}", ex.Message);
+                    _logger.LogWarning(ex, "Could not publish event: {EventId}-{EventName} after {Timeout}s ({ExceptionMessage})", eventId, eventName, $"{time.TotalSeconds:n1}", ex.Message);
                 });
-
-            var eventName = @event.EventName ?? @event.GetType().Name;
-
-            _logger.LogTrace("Creating RabbitMQ channel to publish event: {EventId} ({EventName})", @event.Id, eventName);
 
             using (var channel = _persistentConnection.CreateModel())
             {
-                _logger.LogTrace("Declaring RabbitMQ exchange to publish event: {EventId}", @event.Id);
+                _logger.LogTrace("Declaring RabbitMQ exchange to publish event: {EventId}-{EventName}", eventId, eventName);
 
                 channel.ExchangeDeclare(exchange: BROKER_NAME, type: "direct");
 
-                var message = JsonConvert.SerializeObject(@event);
                 var body = Encoding.UTF8.GetBytes(message);
 
                 policy.Execute(() =>
@@ -104,7 +108,7 @@ namespace Coast.RabbitMQ
                     var properties = channel.CreateBasicProperties();
                     properties.DeliveryMode = 2; // persistent
 
-                    _logger.LogTrace("Publishing event to RabbitMQ: {EventId}", @event.Id);
+                    _logger.LogTrace("Publishing event to RabbitMQ: {EventId}", eventId);
 
                     channel.BasicPublish(
                         exchange: BROKER_NAME,
@@ -181,12 +185,9 @@ namespace Coast.RabbitMQ
                     _persistentConnection.TryConnect();
                 }
 
-                using (var channel = _persistentConnection.CreateModel())
-                {
-                    channel.QueueBind(queue: _queueName,
-                                      exchange: BROKER_NAME,
-                                      routingKey: eventName);
-                }
+                _consumerChannel.QueueBind(queue: _queueName,
+                                    exchange: BROKER_NAME,
+                                    routingKey: eventName);
             }
         }
 
@@ -234,9 +235,16 @@ namespace Coast.RabbitMQ
             }
 
             // Even on exception we take the message off the queue.
-            // in a REAL WORLD app this should be handled with a Dead Letter Exchange (DLX). 
+            // in a REAL WORLD app this should be handled with a Dead Letter Exchange (DLX).
             // For more information see: https://www.rabbitmq.com/dlx.html
             _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+
+            var @callbackEvent = JsonConvert.DeserializeObject<SagaEvent>(message);
+            @callbackEvent.Succeeded = true;
+            @callbackEvent.EventType = TransactionStepTypeEnum.Commit;
+            @callbackEvent.EventName = callbackEvent.DomainName;
+
+            Publish(callbackEvent);
         }
 
         private IModel CreateConsumerChannel()
@@ -263,49 +271,12 @@ namespace Coast.RabbitMQ
             {
                 _logger.LogWarning(ea.Exception, "Recreating RabbitMQ consumer channel");
 
-                _consumerChannel.Dispose();
+                _consumerChannel?.Dispose();
                 _consumerChannel = CreateConsumerChannel();
                 StartBasicConsume();
             };
 
             return channel;
         }
-
-        //private async Task ProcessEvent(string eventName, string message)
-        //{
-        //    _logger.LogTrace("Processing RabbitMQ event: {EventName}", eventName);
-
-        //    if (_subsManager.HasSubscriptionsForEvent(eventName))
-        //    {
-        //        var subscriptions = _subsManager.GetHandlersForEvent(eventName);
-        //        foreach (var subscription in subscriptions)
-        //        {
-        //            if (subscription.IsDynamic)
-        //            {
-        //                var handler = _serviceProvider.GetService(subscription.HandlerType) as IDynamicIntegrationEventHandler;
-        //                if (handler == null) continue;
-        //                dynamic eventData = JObject.Parse(message);
-
-        //                await Task.Yield();
-        //                await handler.Handle(eventData);
-        //            }
-        //            else
-        //            {
-        //                var handler = _serviceProvider.GetService(subscription.HandlerType);
-        //                if (handler == null) continue;
-        //                var eventType = _subsManager.GetEventTypeByName(eventName);
-        //                var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
-        //                var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-
-        //                await Task.Yield();
-        //                await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
-        //            }
-        //        }
-        //    }
-        //    else
-        //    {
-        //        _logger.LogWarning("No subscription for RabbitMQ event: {EventName}", eventName);
-        //    }
-        //}
     }
 }

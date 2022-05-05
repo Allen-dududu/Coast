@@ -40,13 +40,14 @@
                     dynamic eventData = JObject.Parse(message);
                     var eventType = _subsManager.GetEventTypeByName(eventName);
 
-                    if (eventData.TransactionStepTypeEnum == TransactionStepTypeEnum.Commit)
+                    if (eventData.EventType == TransactionStepTypeEnum.Commit)
                     {
                         (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, message, subscription);
                         await Task.Yield();
+                        var x = concreteType.GetMethod("Commit");
                         await (Task)concreteType.GetMethod("Commit").Invoke(handler, new object[] { eventDataObj });
                     }
-                    else if (eventData.TransactionStepTypeEnum == TransactionStepTypeEnum.Compensate)
+                    else if (eventData.EventType == TransactionStepTypeEnum.Compensate)
                     {
                         (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, message, subscription);
                         await Task.Yield();

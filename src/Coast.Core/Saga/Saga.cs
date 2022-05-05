@@ -16,7 +16,10 @@
         /// <param name="steps">Saga Steps.</param>
         public Saga(IEnumerable<IEventRequestBody> steps)
         {
-            SagaSteps.AddRange(steps.Select(i => new SagaStep(Id, i)));
+            if (steps != null)
+            {
+                SagaSteps.AddRange(steps.Select(i => new SagaStep(Id, i)));
+            }
         }
 
         /// <summary>
@@ -30,7 +33,7 @@
 
         public SagaStateEnum State { get; private set; } = SagaStateEnum.Created;
 
-        public DateTime CreateTime { get; private set; }
+        public DateTime CreationTime { get; private set; }
 
         public int CurrenExecuteOrder { get; private set; }
 
@@ -97,7 +100,7 @@
             return this;
         }
 
-        public List<SagaEvent> Start()
+        internal List<SagaEvent> Start()
         {
             if (SagaSteps.Count == 0)
             {
