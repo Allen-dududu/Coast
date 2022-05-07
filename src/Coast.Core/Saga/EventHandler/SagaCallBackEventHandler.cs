@@ -40,7 +40,7 @@
             var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
 
             var connection = _connectionProvider.GetAdventureWorksConnection();
-            barrier.Call(connection, async (tx) => await _sagaManager.TransitAsync(@event, tx));
+            await barrier.Call(connection, async (tx) => await _sagaManager.TransitAsync(@event, tx));
         }
     }
 }

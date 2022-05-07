@@ -36,7 +36,7 @@ namespace Saga_RabbitMQ_PostgreSql.Controllers
         [HttpGet("tradeIn")]
         public async Task<IActionResult> Get2Async()
         {
-            var saga = await _sagaManager.CreateAsync();
+            var saga = _sagaManager.Create();
             saga.AddStep(new TradeInRequest() { Amount = 100 });
 
             await _sagaManager.StartAsync(saga);
