@@ -11,21 +11,21 @@
 
         event EventHandler<string> OnEventRemoved;
 
-        void AddDynamicSubscription<TH>(string eventName)
-           where TH : IDynamicIntegrationEventHandler;
-
         void AddSubscription<T, TH>()
-           where T : IntegrationEvent
-           where TH : IIntegrationEventHandler<T>;
+           where T : IEventRequestBody
+           where TH : ISagaHandler<T>;
 
         void RemoveSubscription<T, TH>()
-             where TH : IIntegrationEventHandler<T>
-             where T : IntegrationEvent;
+             where TH : ISagaHandler<T>
+             where T : IEventRequestBody;
 
-        void RemoveDynamicSubscription<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler;
+        void AddSubscription<TH>(string eventName)
+            where TH : ISagaHandler;
 
-        bool HasSubscriptionsForEvent<T>() where T : IntegrationEvent;
+        void RemoveSubscription<TH>(string eventName)
+            where TH : ISagaHandler;
+
+        bool HasSubscriptionsForEvent<T>() where T : IEventRequestBody;
 
         bool HasSubscriptionsForEvent(string eventName);
 
@@ -33,7 +33,7 @@
 
         void Clear();
 
-        IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : IntegrationEvent;
+        IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : IEventRequestBody;
 
         IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName);
 

@@ -23,9 +23,10 @@
             }
         }
 
-        public void StartTransaction()
+        public IDbTransaction StartTransaction(IDbTransaction transaction)
         {
-            _transaction = _connection.BeginTransaction();
+            _transaction = transaction ?? _connection.BeginTransaction();
+            return _transaction;
         }
 
         public void CommitTransaction()
@@ -40,7 +41,6 @@
 
         public void Dispose()
         {
-            _transaction?.Commit();
             _connection?.Close();
         }
 

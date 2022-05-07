@@ -24,15 +24,9 @@
 
         public void Clear() => _handlers.Clear();
 
-        public void AddDynamicSubscription<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
-        {
-            DoAddSubscription(typeof(TH), eventName, isDynamic: true);
-        }
-
         public void AddSubscription<T, TH>()
-            where T : IntegrationEvent
-            where TH : IIntegrationEventHandler<T>
+            where T : IEventRequestBody
+            where TH : ISagaHandler<T>
         {
             var eventName = GetEventKey<T>();
 
@@ -42,6 +36,56 @@
             {
                 _eventTypes.Add(typeof(T));
             }
+        }
+
+        public void RemoveDynamicSubscription<TH>(string eventName)
+            where TH : ISagaHandler
+        {
+            var handlerToRemove = FindDynamicSubscriptionToRemove<TH>(eventName);
+            DoRemoveHandler(eventName, handlerToRemove);
+        }
+
+        public void RemoveSubscription<T, TH>()
+            where TH : ISagaHandler<T>
+            where T : IEventRequestBody
+        {
+            var handlerToRemove = FindSubscriptionToRemove<T, TH>();
+            var eventName = GetEventKey<T>();
+            DoRemoveHandler(eventName, handlerToRemove);
+        }
+
+        public IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : IEventRequestBody
+        {
+            var key = GetEventKey<T>();
+            return GetHandlersForEvent(key);
+        }
+
+        public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => _handlers[eventName];
+
+        public bool HasSubscriptionsForEvent<T>() where T : IEventRequestBody
+        {
+            var key = GetEventKey<T>();
+            return HasSubscriptionsForEvent(key);
+        }
+
+        public bool HasSubscriptionsForEvent(string eventName) => _handlers.ContainsKey(eventName);
+
+        public Type GetEventTypeByName(string eventName) => _eventTypes.SingleOrDefault(t => t.Name == eventName);
+
+        public string GetEventKey<T>()
+        {
+            return typeof(T).Name;
+        }
+
+        public void AddSubscription<TH>(string eventName) where TH : ISagaHandler
+        {
+            DoAddSubscription(typeof(TH), eventName, isDynamic: true);
+        }
+
+        public void RemoveSubscription<TH>(string eventName) where TH : ISagaHandler
+        {
+            var handlerToRemove = FindDynamicSubscriptionToRemove<TH>(eventName);
+            DoRemoveHandler(eventName, handlerToRemove);
         }
 
         private void DoAddSubscription(Type handlerType, string eventName, bool isDynamic)
@@ -67,22 +111,6 @@
             }
         }
 
-        public void RemoveDynamicSubscription<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
-        {
-            var handlerToRemove = FindDynamicSubscriptionToRemove<TH>(eventName);
-            DoRemoveHandler(eventName, handlerToRemove);
-        }
-
-        public void RemoveSubscription<T, TH>()
-            where TH : IIntegrationEventHandler<T>
-            where T : IntegrationEvent
-        {
-            var handlerToRemove = FindSubscriptionToRemove<T, TH>();
-            var eventName = GetEventKey<T>();
-            DoRemoveHandler(eventName, handlerToRemove);
-        }
-
         private void DoRemoveHandler(string eventName, SubscriptionInfo subsToRemove)
         {
             if (subsToRemove != null)
@@ -102,14 +130,6 @@
             }
         }
 
-        public IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : IntegrationEvent
-        {
-            var key = GetEventKey<T>();
-            return GetHandlersForEvent(key);
-        }
-
-        public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => _handlers[eventName];
-
         private void RaiseOnEventRemoved(string eventName)
         {
             var handler = OnEventRemoved;
@@ -117,14 +137,14 @@
         }
 
         private SubscriptionInfo FindDynamicSubscriptionToRemove<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
+            where TH : ISagaHandler
         {
             return DoFindSubscriptionToRemove(eventName, typeof(TH));
         }
 
         private SubscriptionInfo FindSubscriptionToRemove<T, TH>()
-             where T : IntegrationEvent
-             where TH : IIntegrationEventHandler<T>
+             where T : IEventRequestBody
+             where TH : ISagaHandler<T>
         {
             var eventName = GetEventKey<T>();
             return DoFindSubscriptionToRemove(eventName, typeof(TH));
@@ -138,21 +158,6 @@
             }
 
             return _handlers[eventName].SingleOrDefault(s => s.HandlerType == handlerType);
-        }
-
-        public bool HasSubscriptionsForEvent<T>() where T : IntegrationEvent
-        {
-            var key = GetEventKey<T>();
-            return HasSubscriptionsForEvent(key);
-        }
-
-        public bool HasSubscriptionsForEvent(string eventName) => _handlers.ContainsKey(eventName);
-
-        public Type GetEventTypeByName(string eventName) => _eventTypes.SingleOrDefault(t => t.Name == eventName);
-
-        public string GetEventKey<T>()
-        {
-            return typeof(T).Name;
         }
     }
 }

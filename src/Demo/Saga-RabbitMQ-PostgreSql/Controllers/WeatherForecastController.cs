@@ -1,3 +1,4 @@
+using Coast.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Saga_RabbitMQ_PostgreSql.Controllers
@@ -12,10 +13,12 @@ namespace Saga_RabbitMQ_PostgreSql.Controllers
     };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly ISagaManager _sagaManager;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, ISagaManager sagaManager)
         {
             _logger = logger;
+            _sagaManager = sagaManager;
         }
 
         [HttpGet]
@@ -28,6 +31,17 @@ namespace Saga_RabbitMQ_PostgreSql.Controllers
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
             })
             .ToArray();
+        }
+
+        [HttpGet("tradeIn")]
+        public async Task<IActionResult> Get2Async()
+        {
+            var saga = _sagaManager.Create();
+            saga.AddStep(new TradeInRequest() { Amount = 100 });
+
+            await _sagaManager.StartAsync(saga);
+
+            return Ok();
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using System.Data;
-
-namespace Coast.PostgreSql.Connection
+﻿namespace Coast.Core
 {
+    using System.Data;
+
     public interface IConnectionProvider
     {
         IDbConnection GetAdventureWorksConnection();

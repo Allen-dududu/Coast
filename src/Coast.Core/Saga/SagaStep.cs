@@ -4,11 +4,12 @@
     using System.Collections.Generic;
     using System.Text;
     using Coast.Core.EventBus;
+    using Coast.Core.Util;
     using Newtonsoft.Json;
 
     public class SagaStep
     {
-        public SagaStep(long correlationId, object sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public SagaStep(long correlationId, IEventRequestBody sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
         {
             if (executeOrder < 0)
             {
@@ -22,7 +23,7 @@
             HasCompensation = hasCompensation;
         }
 
-        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
         {
             if (executeOrder < 0)
             {
@@ -56,7 +57,7 @@
 
         public string? FailedReason { get; protected set; }
 
-        public DateTime CreateTime { get; protected set; }
+        public DateTime CreationTime { get; protected set; }
 
         public DateTime UpdateTime { get; protected set; }
 
@@ -71,9 +72,11 @@
             {
                 EventName = EventName,
                 SagaStepId = Id,
-                EventType = SagaStepTypeEnum.Commit,
+                EventType = TransactionStepTypeEnum.Commit,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
+                TransactionType = TransactionTypeEnum.Saga,
+                DomainName = Const.DomainName,
             };
         }
 
@@ -88,9 +91,11 @@
             {
                 EventName = EventName,
                 SagaStepId = Id,
-                EventType = SagaStepTypeEnum.Compensate,
+                EventType = TransactionStepTypeEnum.Compensate,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
+                TransactionType = TransactionTypeEnum.Saga,
+                DomainName = Const.DomainName,
             };
         }
     }

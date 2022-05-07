@@ -26,5 +26,14 @@
 
         [JsonProperty]
         public string EventName { get; set; }
+
+        [JsonProperty]
+        public TransactionTypeEnum TransactionType { get; set; }
+
+        [JsonProperty]
+        public bool Succeeded { get; set; }
+
+        [JsonProperty]
+        public string DomainName { get; set; }
     }
 }

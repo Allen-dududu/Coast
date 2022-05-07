@@ -2,6 +2,7 @@
 {
     using System;
     using System.Data;
+    using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.PostgreSql.Connection;
 
@@ -23,8 +24,9 @@
 
         public IWapperSession OpenSession(IDbConnection dbConnection = null)
         {
-            var connection = dbConnection ?? _connection;
-           return new WrapperSession(connection);
+            var connection = dbConnection ?? _connectionProvider.GetAdventureWorksConnection();
+            _connection = connection;
+            return new WrapperSession(connection);
         }
 
         public void Dispose()
