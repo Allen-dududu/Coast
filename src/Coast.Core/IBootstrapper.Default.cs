@@ -8,6 +8,7 @@
     using Coast.Core.EventBus;
     using Coast.Core.MigrationManager;
     using Coast.Core.Processor;
+    using Coast.Core.Util;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
@@ -36,12 +37,13 @@
             _logger.LogDebug("### Coast background task is starting.");
 
             CheckRequirement();
+            var option = _serviceProvider.GetRequiredService<CoastOptions>();
 
             try
             {
                 _processors = _serviceProvider.GetServices<IProcessingServer>();
 
-                await _serviceProvider.GetRequiredService<ICoastDBInitializer>().InitializeAsync(stoppingToken);
+                await _serviceProvider.GetRequiredService<ICoastDBInitializer>().InitializeAsync(option.Schema, stoppingToken);
             }
             catch (Exception e)
             {
@@ -50,8 +52,7 @@
             }
 
             var eventBus = _serviceProvider.GetRequiredService<IEventBus>();
-            var option = _serviceProvider.GetRequiredService<CoastOptions>();
-            eventBus.Subscribe<SagaCallBackEventHandler>(option.DomainName);
+            eventBus.Subscribe<SagaCallBackEventHandler>(option.DomainName + CoastConstant.CallBackEventSuffix);
 
             stoppingToken.Register(() =>
             {
@@ -73,7 +74,7 @@
 
         private void CheckRequirement()
         {
-            var eventBus = _serviceProvider.GetService<IEventBus>();
+            var eventBus = _serviceProvider.GetRequiredService<IEventBus>();
             if (eventBus == null)
             {
                 throw new InvalidOperationException(

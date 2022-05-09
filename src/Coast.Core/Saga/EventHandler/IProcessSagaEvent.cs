@@ -7,6 +7,6 @@
 
     public interface IProcessSagaEvent
     {
-        Task ProcessEvent(string eventName, string message);
+        Task ProcessEvent(string eventName, SagaEvent @event);
     }
 }

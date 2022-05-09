@@ -30,17 +30,17 @@
             _connectionProvider = connectionProvider;
         }
 
-        public Task Cancel(SagaEvent @event)
+        public Task CancelAsync(string @event)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Commit(SagaEvent @event)
+        public async Task CommitAsync(string @event)
         {
-            var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
+            //var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
 
-            var connection = _connectionProvider.GetAdventureWorksConnection();
-            await barrier.Call(connection, async (tx) => await _sagaManager.TransitAsync(@event, tx));
+            //using var connection = _connectionProvider.OpenConnection();
+            //await barrier.Call(connection, async (connection, trans) => await _sagaManager.TransitAsync(@event, connection, trans));
         }
     }
 }

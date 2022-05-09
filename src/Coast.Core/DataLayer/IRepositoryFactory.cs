@@ -5,7 +5,7 @@
     using System.Data;
     using System.Text;
     using Coast.Core.DataLayer;
-    using Coast.Core.EventBus.IntegrationEventLog;
+    using Coast.Core.EventBus.EventLog;
 
     public interface IRepositoryFactory
     {

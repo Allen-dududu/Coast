@@ -3,16 +3,19 @@ namespace Coast.RabbitMQ
     using System;
     using System.Net.Sockets;
     using System.Text;
+    using System.Text.Json;
+    using System.Text.Json.Nodes;
     using System.Threading;
     using System.Threading.Tasks;
     using Coast.Core;
+    using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
+    using Coast.Core.Util;
     using global::RabbitMQ.Client;
     using global::RabbitMQ.Client.Events;
     using global::RabbitMQ.Client.Exceptions;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Polly;
     using Polly.Retry;
 
@@ -26,6 +29,9 @@ namespace Coast.RabbitMQ
         private readonly IServiceProvider _serviceProvider;
         private readonly int _retryCount;
         private readonly IProcessSagaEvent _processSagaEvent;
+        private readonly IRepositoryFactory _repositoryFactory;
+        private readonly string _callBackEventName;
+
         private IModel _consumerChannel;
         private string _queueName;
 
@@ -34,19 +40,23 @@ namespace Coast.RabbitMQ
             ILogger<EventBusRabbitMQ> logger,
             IServiceProvider serviceProvider,
             IEventBusSubscriptionsManager subsManager,
+            IProcessSagaEvent processSagaEvent,
+            IRepositoryFactory repositoryFactory,
             string queueName = null,
-            int retryCount = 5,
-            IProcessSagaEvent processSagaEvent = null)
+            int retryCount = 5)
         {
+            _serviceProvider = serviceProvider;
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
-            _queueName = queueName;
+            var option = _serviceProvider.GetRequiredService<CoastOptions>();
+            _callBackEventName = option.DomainName + CoastConstant.CallBackEventSuffix;
+            _queueName = queueName ?? option.DomainName;
             _consumerChannel = CreateConsumerChannel();
-            _serviceProvider = serviceProvider;
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
             _processSagaEvent = processSagaEvent;
+            _repositoryFactory = repositoryFactory;
         }
 
         private void SubsManager_OnEventRemoved(object sender, string eventName)
@@ -75,13 +85,14 @@ namespace Coast.RabbitMQ
             cancellationToken.ThrowIfCancellationRequested();
 
             var eventName = @event.EventName ?? @event.GetType().Name;
-            var message = JsonConvert.SerializeObject(@event);
+            var message = JsonSerializer.Serialize(@event, @event.GetType());
+
             _logger.LogTrace("Creating RabbitMQ channel to publish event: {EventId} ({EventName})", @event.Id, eventName);
 
-            SendAsync(@event.Id, eventName, message);
+            Send(@event.Id, eventName, message);
         }
 
-        private void SendAsync(long eventId, string eventName, string message)
+        private void Send(long eventId, string eventName, string message)
         {
             if (!_persistentConnection.IsConnected)
             {
@@ -121,7 +132,7 @@ namespace Coast.RabbitMQ
         }
 
         public void Subscribe<T, TH>()
-            where T : IEventRequestBody
+            where T : EventRequestBody
             where TH : ISagaHandler<T>
         {
             var eventName = _subsManager.GetEventKey<T>();
@@ -149,7 +160,7 @@ namespace Coast.RabbitMQ
         }
 
         public void Unsubscribe<T, TH>()
-            where T : IEventRequestBody
+            where T : EventRequestBody
             where TH : ISagaHandler<T>
         {
             var eventName = _subsManager.GetEventKey<T>();
@@ -158,12 +169,6 @@ namespace Coast.RabbitMQ
 
             _subsManager.RemoveSubscription<T, TH>();
         }
-
-        //public void UnsubscribeDynamic<TH>(string eventName)
-        //    where TH : IDynamicIntegrationEventHandler
-        //{
-        //    _subsManager.RemoveDynamicSubscription<TH>(eventName);
-        //}
 
         public void Dispose()
         {
@@ -216,6 +221,25 @@ namespace Coast.RabbitMQ
         {
             var eventName = eventArgs.RoutingKey;
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
+            var @event = JsonSerializer.Deserialize<SagaEvent>(message);
+
+            // Call Back Event.
+            if (string.Equals(eventName, _callBackEventName, StringComparison.Ordinal))
+            {
+                // process callback event.
+                var callBackEventService = new CallBackEventService(_serviceProvider);
+                var sagaEvents = await callBackEventService.ProcessEventAsync(@event);
+                using var session = _repositoryFactory.OpenSession();
+                var eventLogRepository = session.ConstructEventLogRepository();
+                foreach (var sagaEvent in sagaEvents)
+                {
+                    await eventLogRepository.MarkEventAsInProgressAsync(sagaEvent.Id);
+                    Publish(sagaEvent);
+                    await eventLogRepository.MarkEventAsPublishedAsync(sagaEvent.Id);
+                }
+
+                return;
+            }
 
             try
             {
@@ -224,11 +248,12 @@ namespace Coast.RabbitMQ
                     throw new InvalidOperationException($"Fake exception requested: \"{message}\"");
                 }
 
-                await _processSagaEvent.ProcessEvent(eventName, message);
+                await _processSagaEvent.ProcessEvent(eventName, @event);
             }
             catch (Exception ex)
             {
-                _consumerChannel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
+                //_consumerChannel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: false);
+                _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
                 _logger.LogWarning(ex, "----- ERROR Processing message \"{Message}\"", message);
 
                 return;
@@ -239,12 +264,15 @@ namespace Coast.RabbitMQ
             // For more information see: https://www.rabbitmq.com/dlx.html
             _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
 
-            var @callbackEvent = JsonConvert.DeserializeObject<SagaEvent>(message);
-            @callbackEvent.Succeeded = true;
-            @callbackEvent.EventType = TransactionStepTypeEnum.Commit;
-            @callbackEvent.EventName = callbackEvent.DomainName;
+            var @callBackEvent = new SagaEvent()
+            {
+                StepId = @event.Id,
+                CorrelationId = @event.CorrelationId,
+                Succeeded = true,
+                EventName = @event.DomainName
+            };
 
-            Publish(callbackEvent);
+            Publish(@callBackEvent);
         }
 
         private IModel CreateConsumerChannel()

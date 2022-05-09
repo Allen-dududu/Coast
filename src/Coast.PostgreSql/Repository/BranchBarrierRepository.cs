@@ -12,21 +12,21 @@
     public class BranchBarrierRepository : IBranchBarrierRepository
     {
         private const string InsertIgnoreSql =
- @"INSERT INTO Coast_Barrier (""Id"", ""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""CreationTime"")
+ @"INSERT INTO ""Coast_Barrier"" (""Id"", ""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""CreationTime"")
 VALUES(@Id, @TransactionType, @CorrelationId, @StepId, @StepType, @CreationTime) 
-ON CONFLICT ""Barrier_Id"" 
+ON CONFLICT (""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"") 
 DO NOTHING;";
 
-        public async Task<(int affected, string error)> InsertBarrierAsync(IDbConnection db, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType, IDbTransaction tx = null)
+        public async Task<(int affected, string error)> InsertBarrierAsync(IDbConnection conn, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType, IDbTransaction trans = null)
         {
             int affected = 0;
             string error = string.Empty;
             try
             {
-                affected = await db.ExecuteAsync(
+                affected = await conn.ExecuteAsync(
                     InsertIgnoreSql,
                     new { id = SnowflakeId.Default().NextId(),  TransactionType = transactionType, CorrelationId = correlationId, StepId = stepId, StepType = stepType, CreationTime = DateTime.UtcNow },
-                    transaction: tx).ConfigureAwait(false);
+                    transaction: trans).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

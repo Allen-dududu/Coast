@@ -25,11 +25,11 @@ VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody,
 
         private const string QuerySagaSql =
 @"SELECT ""Id"", ""State"", ""CurrentStep""
-FROM ""Coast_Saga"" where ""Id"" = @SagaId;";
+FROM ""Coast_Saga"" where ""Id"" = @Id;";
 
         private const string QuerySagaStepSql =
 @"SELECT ""Id"", ""CorrelationId"", ""EventName"",""HasCompensation"", ""State"", ""RequestBody"", ""FailedReason"", ""CreationTime"" ,""ExecuteOrder"" 
-FROM ""Coast_SagaStep"" where ""CorrelationId"" = @SagaId;";
+FROM ""Coast_SagaStep"" where ""CorrelationId"" = @CorrelationId;";
 
         private const string UpdateSagaSql =
 @"UPDATE ""Coast_Saga""
@@ -38,7 +38,7 @@ WHERE ""Id"" = @Id";
 
         private const string UpdateSagaStepSql =
 @"UPDATE ""Coast_SagaStep""
-SET ""State"" = @State, ""FailedReason"" = @FailedReason,  
+SET ""State"" = @State, ""FailedReason"" = @FailedReason 
 WHERE ""Id"" = @Id";
 
         private IDbConnection _connection;
@@ -54,14 +54,13 @@ WHERE ""Id"" = @Id";
         }
 
         /// <inheritdoc/>
-        public async Task AddSagaAsync(Saga saga, CancellationToken cancellationToken = default)
+        public async Task SaveSagaAsync(Saga saga, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var sagaId = SnowflakeId.Default().NextId();
             await _connection.ExecuteAsync(
                     InsertSagaSql,
-                    new { Id = sagaId, State = SagaStateEnum.Started, CreationTime = DateTime.UtcNow, CurrentStep = saga.CurrenExecuteOrder },
+                    new { Id = saga.Id, State = SagaStateEnum.Started, CreationTime = DateTime.UtcNow, CurrentStep = saga.CurrenExecuteOrder },
                     transaction: _transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)
@@ -70,8 +69,8 @@ WHERE ""Id"" = @Id";
                     insertSagaStepSql,
                     new
                     {
-                        Id = SnowflakeId.Default().NextId(),
-                        CorrelationId = sagaId,
+                        Id = step.Id,
+                        CorrelationId = saga.Id,
                         EventName = step.EventName,
                         State = SagaStepStateEnum.Awaiting,
                         RequestBody = step.RequestBody,
@@ -82,7 +81,30 @@ WHERE ""Id"" = @Id";
                     },
                     transaction: _transaction).ConfigureAwait(false);
             }
+        }
 
+        public async Task SaveSagaStepsAsync(Saga saga, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var step in saga.SagaSteps)
+            {
+                await _connection.ExecuteAsync(
+                    insertSagaStepSql,
+                    new
+                    {
+                        Id = step.Id,
+                        CorrelationId = saga.Id,
+                        EventName = step.EventName,
+                        State = SagaStepStateEnum.Awaiting,
+                        RequestBody = step.RequestBody,
+                        CreationTime = DateTime.UtcNow,
+                        HasCompensation = step.HasCompensation,
+                        FailedReason = step.FailedReason,
+                        ExecuteOrder = step.ExecuteOrder,
+                    },
+                    transaction: _transaction).ConfigureAwait(false);
+            }
         }
 
         /// <inheritdoc/>
@@ -96,7 +118,7 @@ WHERE ""Id"" = @Id";
 
             var sagaSteps = await _connection.QueryAsync<SagaStep>(
                     QuerySagaStepSql,
-                    new { Id = sagaId }).ConfigureAwait(false);
+                    new { CorrelationId = sagaId }).ConfigureAwait(false);
 
             saga.SagaSteps = sagaSteps.ToList();
 

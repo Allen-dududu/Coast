@@ -3,13 +3,18 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+    using System.Text.Json;
     using Coast.Core.EventBus;
     using Coast.Core.Util;
-    using Newtonsoft.Json;
 
     public class SagaStep
     {
-        public SagaStep(long correlationId, IEventRequestBody sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
+        internal SagaStep()
+        {
+
+        }
+
+        public SagaStep(long correlationId, EventRequestBody sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
         {
             if (executeOrder < 0)
             {
@@ -19,7 +24,7 @@
             CorrelationId = correlationId;
             ExecuteOrder = executeOrder;
             EventName = sagaRequestBody.GetType().Name;
-            RequestBody = JsonConvert.SerializeObject(sagaRequestBody);
+            RequestBody = JsonSerializer.Serialize(sagaRequestBody, sagaRequestBody.GetType());
             HasCompensation = hasCompensation;
         }
 
@@ -33,7 +38,7 @@
             CorrelationId = correlationId;
             EventName = eventName;
             ExecuteOrder = executeOrder;
-            RequestBody = JsonConvert.SerializeObject(sagaRequestBody);
+            RequestBody = JsonSerializer.Serialize(sagaRequestBody, sagaRequestBody.GetType());
             HasCompensation = hasCompensation;
         }
 
@@ -51,7 +56,7 @@
 
         public SagaStepStateEnum State { get; set; } = SagaStepStateEnum.Awaiting;
 
-        public string RequestBody { get; protected set; }
+        public string RequestBody { get; set; }
 
         public string EventName { get; protected set; }
 
@@ -71,12 +76,12 @@
             return new SagaEvent
             {
                 EventName = EventName,
-                SagaStepId = Id,
+                StepId = Id,
                 EventType = TransactionStepTypeEnum.Commit,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
-                DomainName = Const.DomainName,
+                DomainName = CoastConstant.DomainName,
             };
         }
 
@@ -90,12 +95,12 @@
             return new SagaEvent
             {
                 EventName = EventName,
-                SagaStepId = Id,
+                StepId = Id,
                 EventType = TransactionStepTypeEnum.Compensate,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
-                DomainName = Const.DomainName,
+                DomainName = CoastConstant.DomainName,
             };
         }
     }

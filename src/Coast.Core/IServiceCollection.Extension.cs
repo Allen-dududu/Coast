@@ -10,7 +10,7 @@
     {
         public static CoastBuild AddCosat(this IServiceCollection services, Action<CoastOptions> setupAction)
         {
-            if (setupAction == null)
+            if (setupAction is null)
             {
                 throw new ArgumentNullException(nameof(setupAction));
             }
@@ -25,19 +25,20 @@
                 throw new InvalidOperationException("You must be config DomainName For Coast!");
             }
 
-            Const.DomainName = options.DomainName;
-            Const.WorkerId = options.WorkerId;
+            CoastConstant.DomainName = options.DomainName;
+            CoastConstant.WorkerId = options.WorkerId;
             services.AddSingleton<CoastOptions>(options);
+            services.TryAddTransient<IBarrierService, DefaultBarrierService>();
+            services.TryAddTransient<SagaCallBackEventHandler>();
+            services.TryAddTransient<ISagaManager, SagaManager>();
+            services.TryAddTransient<IProcessSagaEvent, ProcessSagaEvent>();
 
             foreach (var serviceExtension in options.Extensions)
             {
                 serviceExtension(services);
             }
 
-            services.TryAddTransient<IBarrierService, DefaultBarrierService>();
-            services.TryAddTransient<SagaCallBackEventHandler>();
-            services.TryAddTransient<ISagaManager, SagaManager>();
-            services.TryAddTransient<IProcessSagaEvent, ProcessSagaEvent>();
+
 
             // Startup and Hosted
             services.AddSingleton<Bootstrapper>();

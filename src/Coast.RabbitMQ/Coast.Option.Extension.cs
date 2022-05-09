@@ -1,12 +1,13 @@
 namespace Coast.RabbitMQ
 {
-    using Coast.Core;
-    using Coast.Core.EventBus;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using global::RabbitMQ.Client;
     using System;
+    using Coast.Core;
+    using Coast.Core.DataLayer;
+    using Coast.Core.EventBus;
+    using global::RabbitMQ.Client;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Logging;
 
     public static class CoastOptionsExtension
     {
@@ -17,9 +18,9 @@ namespace Coast.RabbitMQ
             }, subscriptionClientName, retryCount);
         }
 
-        public static CoastOptions UseRabbitMQ(this CoastOptions options, ConnectionFactory connectionFactory, string subscriptionClientName, int retryCount)
+        public static CoastOptions UseRabbitMQ(this CoastOptions options, ConnectionFactory connectionFactory, string? subscriptionClientName, int retryCount = 5)
         {
-            if (connectionFactory == null)
+            if (connectionFactory is null)
             {
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
@@ -34,7 +35,9 @@ namespace Coast.RabbitMQ
                     var log = s.GetRequiredService<ILogger<EventBusRabbitMQ>>();
                     var subsManager = s.GetRequiredService<IEventBusSubscriptionsManager>();
                     var processEvent = s.GetRequiredService<IProcessSagaEvent>();
-                    return new EventBusRabbitMQ(pc, log, s, subsManager, subscriptionClientName, retryCount, processEvent);
+                    var repositoryFactory = s.GetRequiredService<IRepositoryFactory>();
+
+                    return new EventBusRabbitMQ(pc, log, s, subsManager, processEvent, repositoryFactory, subscriptionClientName, retryCount);
                 });
             });
 

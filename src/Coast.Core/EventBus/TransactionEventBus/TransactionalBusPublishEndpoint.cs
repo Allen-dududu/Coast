@@ -31,7 +31,7 @@
 
         public async void Add(Action action)
         {
-            if (Transaction.Current == null)
+            if (Transaction.Current is null)
             {
                 await Task.Run(() => action());
                 return;

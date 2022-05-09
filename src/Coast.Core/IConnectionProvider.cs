@@ -4,6 +4,6 @@
 
     public interface IConnectionProvider
     {
-        IDbConnection GetAdventureWorksConnection();
+        IDbConnection OpenConnection();
     }
 }

@@ -8,6 +8,6 @@
 
     public interface IBranchBarrierRepository
     {
-        Task<(int affected, string error)> InsertBarrierAsync(IDbConnection db, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType, IDbTransaction tx = null);
+        Task<(int affected, string error)> InsertBarrierAsync(IDbConnection conn, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType, IDbTransaction trans = null);
     }
 }

@@ -3,6 +3,8 @@
     using System;
     using System.Data;
     using System.Threading.Tasks;
+    using Coast.Core.DataLayer;
+    using Coast.Core.EventBus.EventLog;
     using Coast.Core.Idempotent;
     using Microsoft.Extensions.Logging;
 
@@ -10,6 +12,7 @@
     {
         private readonly IBranchBarrierRepository _branchBarrierRepository;
         private readonly ILogger _logger;
+        private readonly IRepositoryFactory _repositoryFactory;
 
         public BranchBarrier(
             TransactionTypeEnum transactionType,
@@ -17,7 +20,8 @@
             long stepId,
             TransactionStepTypeEnum stepType,
             IBranchBarrierRepository branchBarrierRepository,
-            ILogger logger)
+            ILogger logger,
+            IRepositoryFactory repositoryFactory)
         {
             TransactionType = transactionType;
             CorrelationId = correlationId;
@@ -25,8 +29,22 @@
             StepType = stepType;
             _branchBarrierRepository = branchBarrierRepository;
             _logger = logger;
+            _repositoryFactory = repositoryFactory;
         }
 
+        public BranchBarrier(
+            SagaEvent @event,
+            IBranchBarrierRepository branchBarrierRepository,
+            ILogger logger,
+            IRepositoryFactory repositoryFactory)
+        {
+            _sagaEvent = @event;
+            _branchBarrierRepository = branchBarrierRepository;
+            _logger = logger;
+            _repositoryFactory = repositoryFactory;
+        }
+
+        private SagaEvent _sagaEvent { get; set; }
         public int Id { get; set; }
 
         /// <summary>
@@ -44,49 +62,118 @@
 
         public TransactionStepTypeEnum StepType { get; set; }
 
-        public async Task Call(IDbConnection db, Func<IDbTransaction, Task> busiCall)
+        public async Task Call(IDbConnection conn, Func<IDbConnection, IDbTransaction, Task> busiCall)
         {
             // https://zhuanlan.zhihu.com/p/388444465
-            if (db.State != ConnectionState.Open)
+            if (conn.State != ConnectionState.Open)
             {
-                db.Open();
+                conn.Open();
             }
 
-            var tx = db.BeginTransaction();
+            var trans = conn.BeginTransaction();
             try
             {
-                (int affected1, string error1) = await _branchBarrierRepository.InsertBarrierAsync(db,
-                                                                                                   TransactionType,
-                                                                                                   CorrelationId,
-                                                                                                   StepId,
-                                                                                                   StepType,
-                                                                                                   tx);
+                (int affected1, string error1) = await _branchBarrierRepository.InsertBarrierAsync(conn,
+                                                                                                   _sagaEvent.TransactionType,
+                                                                                                   _sagaEvent.CorrelationId,
+                                                                                                   _sagaEvent.StepId,
+                                                                                                   _sagaEvent.EventType,
+                                                                                                   trans);
 
                 int affected2 = 0;
                 string error2 = string.Empty;
                 if (StepType == TransactionStepTypeEnum.Compensate)
                 {
-                    (affected2,  error2) = await _branchBarrierRepository.InsertBarrierAsync(db,
+                    (affected2, error2) = await _branchBarrierRepository.InsertBarrierAsync(conn,
                                                                                              TransactionType,
                                                                                              CorrelationId,
                                                                                              StepId,
                                                                                              TransactionStepTypeEnum.Commit,
-                                                                                             tx);
+                                                                                             trans);
                 }
 
-                if (affected1 != 0 && affected2 == 0 && string.IsNullOrWhiteSpace(error1) && string.IsNullOrWhiteSpace(error2))
+                if (!string.IsNullOrWhiteSpace(error1) || !string.IsNullOrWhiteSpace(error2))
                 {
-                    await busiCall(tx);
-                    tx.Commit();
+                    throw new Exception($"Insert Barrier Error: error1 = {error1}, error2 = {error2}");
+                }
+
+                if (affected1 != 0 && affected2 == 0)
+                {
+                    await busiCall(conn, trans);
+                    await SaveCallBackEventLog(conn, trans);
+                    trans.Commit();
                 }
             }
             catch (Exception ex)
             {
-                tx.Rollback();
+                trans.Rollback();
                 _logger.LogError(ex, $"Call error, CorrelationId={CorrelationId}, TransactionType={TransactionType}, StepId={StepId}, StepType={StepType}");
 
                 throw;
             }
+        }
+
+        public async Task<T> Call<T>(IDbConnection conn, Func<IDbConnection, IDbTransaction, Task<T>> busiCall)
+        {
+            // https://zhuanlan.zhihu.com/p/388444465
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
+            var trans = conn.BeginTransaction();
+            try
+            {
+                (int affected1, string error1) = await _branchBarrierRepository.InsertBarrierAsync(conn,
+                                                                                                   _sagaEvent.TransactionType,
+                                                                                                   _sagaEvent.CorrelationId,
+                                                                                                   _sagaEvent.StepId,
+                                                                                                   _sagaEvent.EventType,
+                                                                                                   trans);
+
+                int affected2 = 0;
+                string error2 = string.Empty;
+                if (StepType == TransactionStepTypeEnum.Compensate)
+                {
+                    (affected2, error2) = await _branchBarrierRepository.InsertBarrierAsync(conn,
+                                                                                             TransactionType,
+                                                                                             CorrelationId,
+                                                                                             StepId,
+                                                                                             TransactionStepTypeEnum.Commit,
+                                                                                             trans);
+                }
+
+                if (!string.IsNullOrWhiteSpace(error1) || !string.IsNullOrWhiteSpace(error2))
+                {
+                    throw new Exception($"Insert Barrier Error: error1 = {error1}, error2 = {error2}");
+                }
+
+                if (affected1 != 0 && affected2 == 0)
+                {
+                    await SaveCallBackEventLog(conn, trans);
+                    var result = await busiCall(conn, trans);
+                    trans.Commit();
+
+                    return result;
+                }
+
+                return default(T);
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                _logger.LogError(ex, $"Call error, CorrelationId={CorrelationId}, TransactionType={TransactionType}, StepId={StepId}, StepType={StepType}");
+
+                throw;
+            }
+        }
+
+        private async Task SaveCallBackEventLog(IDbConnection db, IDbTransaction tx)
+        {
+            var session = _repositoryFactory.OpenSession(db);
+            session.StartTransaction(tx);
+            var eventLogRepository = session.ConstructEventLogRepository();
+            await eventLogRepository.SaveEventAsync(_sagaEvent);
         }
     }
 }
