@@ -28,17 +28,17 @@
             CoastConstant.DomainName = options.DomainName;
             CoastConstant.WorkerId = options.WorkerId;
             services.AddSingleton<CoastOptions>(options);
+            services.TryAddTransient<IBarrierService, DefaultBarrierService>();
+            services.TryAddTransient<SagaCallBackEventHandler>();
+            services.TryAddTransient<ISagaManager, SagaManager>();
+            services.TryAddTransient<IProcessSagaEvent, ProcessSagaEvent>();
 
             foreach (var serviceExtension in options.Extensions)
             {
                 serviceExtension(services);
             }
 
-            services.TryAddTransient<IBarrierService, DefaultBarrierService>();
-            services.TryAddTransient<SagaCallBackEventHandler>();
-            services.TryAddTransient<ISagaManager, SagaManager>();
-            services.TryAddTransient<IProcessSagaEvent, ProcessSagaEvent>();
-            services.TryAddTransient<IProcessCallBackEvent, ProcessCallBackEvent>();
+
 
             // Startup and Hosted
             services.AddSingleton<Bootstrapper>();

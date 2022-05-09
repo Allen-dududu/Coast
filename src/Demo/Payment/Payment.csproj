@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Saga_RabbitMQ_PostgreSql</RootNamespace>
+    <Configurations>Debug;Release;Demo</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

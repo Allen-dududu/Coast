@@ -8,6 +8,7 @@ namespace Coast.RabbitMQ
     using System.Threading;
     using System.Threading.Tasks;
     using Coast.Core;
+    using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
     using Coast.Core.Util;
     using global::RabbitMQ.Client;
@@ -28,7 +29,7 @@ namespace Coast.RabbitMQ
         private readonly IServiceProvider _serviceProvider;
         private readonly int _retryCount;
         private readonly IProcessSagaEvent _processSagaEvent;
-        private readonly IProcessCallBackEvent _processCallBackEvent;
+        private readonly IRepositoryFactory _repositoryFactory;
         private readonly string _callBackEventName;
 
         private IModel _consumerChannel;
@@ -39,11 +40,12 @@ namespace Coast.RabbitMQ
             ILogger<EventBusRabbitMQ> logger,
             IServiceProvider serviceProvider,
             IEventBusSubscriptionsManager subsManager,
-            IProcessSagaEvent processSagaEvent, IProcessCallBackEvent processCallBackEvent,
+            IProcessSagaEvent processSagaEvent,
+            IRepositoryFactory repositoryFactory,
             string queueName = null,
-            int retryCount = 5
-            )
+            int retryCount = 5)
         {
+            _serviceProvider = serviceProvider;
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
@@ -51,11 +53,10 @@ namespace Coast.RabbitMQ
             _callBackEventName = option.DomainName + CoastConstant.CallBackEventSuffix;
             _queueName = queueName ?? option.DomainName;
             _consumerChannel = CreateConsumerChannel();
-            _serviceProvider = serviceProvider;
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
             _processSagaEvent = processSagaEvent;
-            _processCallBackEvent = processCallBackEvent;
+            _repositoryFactory = repositoryFactory;
         }
 
         private void SubsManager_OnEventRemoved(object sender, string eventName)
@@ -222,10 +223,21 @@ namespace Coast.RabbitMQ
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
             var @event = JsonSerializer.Deserialize<SagaEvent>(message);
 
+            // Call Back Event.
             if (string.Equals(eventName, _callBackEventName, StringComparison.Ordinal))
             {
                 // process callback event.
-                await _processCallBackEvent.ProcessEventAsync(@event);
+                var callBackEventService = new CallBackEventService(_serviceProvider);
+                var sagaEvents = await callBackEventService.ProcessEventAsync(@event);
+                using var session = _repositoryFactory.OpenSession();
+                var eventLogRepository = session.ConstructEventLogRepository();
+                foreach (var sagaEvent in sagaEvents)
+                {
+                    await eventLogRepository.MarkEventAsInProgressAsync(sagaEvent.Id);
+                    Publish(sagaEvent);
+                    await eventLogRepository.MarkEventAsPublishedAsync(sagaEvent.Id);
+                }
+
                 return;
             }
 

@@ -2,6 +2,7 @@ namespace Coast.RabbitMQ
 {
     using System;
     using Coast.Core;
+    using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
     using global::RabbitMQ.Client;
     using Microsoft.Extensions.DependencyInjection;
@@ -34,9 +35,9 @@ namespace Coast.RabbitMQ
                     var log = s.GetRequiredService<ILogger<EventBusRabbitMQ>>();
                     var subsManager = s.GetRequiredService<IEventBusSubscriptionsManager>();
                     var processEvent = s.GetRequiredService<IProcessSagaEvent>();
-                    var processCallBackEvent = s.GetRequiredService<IProcessCallBackEvent>();
+                    var repositoryFactory = s.GetRequiredService<IRepositoryFactory>();
 
-                    return new EventBusRabbitMQ(pc, log, s, subsManager, processEvent, processCallBackEvent, subscriptionClientName, retryCount);
+                    return new EventBusRabbitMQ(pc, log, s, subsManager, processEvent, repositoryFactory, subscriptionClientName, retryCount);
                 });
             });
 

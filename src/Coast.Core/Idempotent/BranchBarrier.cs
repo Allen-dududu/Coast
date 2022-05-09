@@ -84,7 +84,7 @@
                 string error2 = string.Empty;
                 if (StepType == TransactionStepTypeEnum.Compensate)
                 {
-                    (affected2,  error2) = await _branchBarrierRepository.InsertBarrierAsync(conn,
+                    (affected2, error2) = await _branchBarrierRepository.InsertBarrierAsync(conn,
                                                                                              TransactionType,
                                                                                              CorrelationId,
                                                                                              StepId,
@@ -92,12 +92,72 @@
                                                                                              trans);
                 }
 
-                if (affected1 != 0 && affected2 == 0 && string.IsNullOrWhiteSpace(error1) && string.IsNullOrWhiteSpace(error2))
+                if (!string.IsNullOrWhiteSpace(error1) || !string.IsNullOrWhiteSpace(error2))
+                {
+                    throw new Exception($"Insert Barrier Error: error1 = {error1}, error2 = {error2}");
+                }
+
+                if (affected1 != 0 && affected2 == 0)
                 {
                     await busiCall(conn, trans);
                     await SaveCallBackEventLog(conn, trans);
                     trans.Commit();
                 }
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                _logger.LogError(ex, $"Call error, CorrelationId={CorrelationId}, TransactionType={TransactionType}, StepId={StepId}, StepType={StepType}");
+
+                throw;
+            }
+        }
+
+        public async Task<T> Call<T>(IDbConnection conn, Func<IDbConnection, IDbTransaction, Task<T>> busiCall)
+        {
+            // https://zhuanlan.zhihu.com/p/388444465
+            if (conn.State != ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
+            var trans = conn.BeginTransaction();
+            try
+            {
+                (int affected1, string error1) = await _branchBarrierRepository.InsertBarrierAsync(conn,
+                                                                                                   _sagaEvent.TransactionType,
+                                                                                                   _sagaEvent.CorrelationId,
+                                                                                                   _sagaEvent.StepId,
+                                                                                                   _sagaEvent.EventType,
+                                                                                                   trans);
+
+                int affected2 = 0;
+                string error2 = string.Empty;
+                if (StepType == TransactionStepTypeEnum.Compensate)
+                {
+                    (affected2, error2) = await _branchBarrierRepository.InsertBarrierAsync(conn,
+                                                                                             TransactionType,
+                                                                                             CorrelationId,
+                                                                                             StepId,
+                                                                                             TransactionStepTypeEnum.Commit,
+                                                                                             trans);
+                }
+
+                if (!string.IsNullOrWhiteSpace(error1) || !string.IsNullOrWhiteSpace(error2))
+                {
+                    throw new Exception($"Insert Barrier Error: error1 = {error1}, error2 = {error2}");
+                }
+
+                if (affected1 != 0 && affected2 == 0)
+                {
+                    await SaveCallBackEventLog(conn, trans);
+                    var result = await busiCall(conn, trans);
+                    trans.Commit();
+
+                    return result;
+                }
+
+                return default(T);
             }
             catch (Exception ex)
             {

@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<EnableNETAnalyzers>True</EnableNETAnalyzers>
+		<Configurations>Debug;Release;Demo</Configurations>
 	</PropertyGroup>
 
 	<ItemGroup>
