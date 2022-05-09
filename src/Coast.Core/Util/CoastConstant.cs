@@ -4,9 +4,12 @@
     using System.Collections.Generic;
     using System.Text;
 
-    internal static class Const
+    public static class CoastConstant
     {
         internal static string DomainName { get; set; }
+
         internal static string WorkerId { get; set; }
+
+        public static string CallBackEventSuffix { get; set; } = ".CallBack.Coast";
     }
 }

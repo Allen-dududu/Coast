@@ -1,4 +1,4 @@
-﻿namespace Coast.Core.EventBus.IntegrationEventLog
+﻿namespace Coast.Core.EventBus.EventLog
 {
     using System;
     using System.Collections.Generic;

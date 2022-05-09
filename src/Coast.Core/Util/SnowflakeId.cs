@@ -86,7 +86,7 @@
                     return _snowflakeId;
                 }
 
-                if (!long.TryParse(Const.WorkerId, out var workerId))
+                if (!long.TryParse(CoastConstant.WorkerId, out var workerId))
                 {
                     workerId = IdUtil.GenerateWorkerId(MaxWorkerId);
                 }

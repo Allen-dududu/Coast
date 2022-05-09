@@ -4,7 +4,7 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Text;
-    using Coast.Core.EventBus.IntegrationEventLog;
+    using Coast.Core.EventBus.EventLog;
 
     public interface IWapperSession : IDisposable
     {

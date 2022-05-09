@@ -21,7 +21,7 @@
             _options = options;
         }
 
-        public IDbConnection GetAdventureWorksConnection()
+        public IDbConnection OpenConnection()
         {
             var conn = new NpgsqlConnection(_options.Value.ConnectionString);
             conn.Open();

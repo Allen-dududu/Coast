@@ -4,7 +4,8 @@
     using System.Collections.Generic;
     using System.Text;
 
-    public interface IEventRequestBody
+    public abstract class EventRequestBody
     {
+        public IDictionary<string, string> Headers { get; set; }
     }
 }

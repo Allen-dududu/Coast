@@ -25,7 +25,7 @@
         public void Clear() => _handlers.Clear();
 
         public void AddSubscription<T, TH>()
-            where T : IEventRequestBody
+            where T : EventRequestBody
             where TH : ISagaHandler<T>
         {
             var eventName = GetEventKey<T>();
@@ -47,14 +47,14 @@
 
         public void RemoveSubscription<T, TH>()
             where TH : ISagaHandler<T>
-            where T : IEventRequestBody
+            where T : EventRequestBody
         {
             var handlerToRemove = FindSubscriptionToRemove<T, TH>();
             var eventName = GetEventKey<T>();
             DoRemoveHandler(eventName, handlerToRemove);
         }
 
-        public IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : IEventRequestBody
+        public IEnumerable<SubscriptionInfo> GetHandlersForEvent<T>() where T : EventRequestBody
         {
             var key = GetEventKey<T>();
             return GetHandlersForEvent(key);
@@ -62,7 +62,7 @@
 
         public IEnumerable<SubscriptionInfo> GetHandlersForEvent(string eventName) => _handlers[eventName];
 
-        public bool HasSubscriptionsForEvent<T>() where T : IEventRequestBody
+        public bool HasSubscriptionsForEvent<T>() where T : EventRequestBody
         {
             var key = GetEventKey<T>();
             return HasSubscriptionsForEvent(key);
@@ -143,7 +143,7 @@
         }
 
         private SubscriptionInfo FindSubscriptionToRemove<T, TH>()
-             where T : IEventRequestBody
+             where T : EventRequestBody
              where TH : ISagaHandler<T>
         {
             var eventName = GetEventKey<T>();

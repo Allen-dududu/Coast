@@ -29,9 +29,12 @@
         /// <param name="steps">saga steps.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task{TResult}"/> saga instance.</returns>
-        public Saga Create(IEnumerable<IEventRequestBody> steps = default, CancellationToken cancellationToken = default)
+        public async Task<Saga> CreateAsync(IEnumerable<EventRequestBody> steps = default, CancellationToken cancellationToken = default)
         {
             var saga = new Saga(steps);
+            using var session = _repositoryFactory.OpenSession();
+            var sagaRepository = session.ConstructSagaRepository();
+            await sagaRepository.SaveSagaAsync(saga, cancellationToken);
             return saga;
         }
 
@@ -43,7 +46,7 @@
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task StartAsync(Saga saga, CancellationToken cancellationToken = default)
         {
-            if (saga == null)
+            if (saga is null)
             {
                 throw new ArgumentNullException(nameof(saga));
             }
@@ -53,34 +56,35 @@
                 throw new ArgumentException("The saga has been created before.");
             }
 
-            var sagaEvents = saga.Start();
+            var @sagaEvents = saga.Start();
 
             using var session = _repositoryFactory.OpenSession();
-            session.StartTransaction();
+            using var transaction = session.StartTransaction();
 
             var sagaRepository = session.ConstructSagaRepository();
             var eventLogRepository = session.ConstructEventLogRepository();
 
             try
             {
-                await sagaRepository.AddSagaAsync(saga, cancellationToken);
-                if (sagaEvents != null)
+                await sagaRepository.SaveSagaStepsAsync(saga, cancellationToken);
+                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+                if (@sagaEvents != null)
                 {
-                    await eventLogRepository.SaveEventAsync(sagaEvents, cancellationToken);
+                    await eventLogRepository.SaveEventAsync(@sagaEvents, cancellationToken);
                 }
 
-                session.CommitTransaction();
+                transaction.Commit();
             }
             catch (Exception ex)
             {
-                session.RollbackTransaction();
+                transaction.Rollback();
                 _logger.LogError(ex, $"Failed to save the saga {saga}");
                 throw;
             }
 
-            if (sagaEvents != null)
+            if (@sagaEvents != null)
             {
-                foreach (var @event in sagaEvents)
+                foreach (var @event in @sagaEvents)
                 {
                     await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
                     _eventPublisher.Publish(@event, cancellationToken);
@@ -94,14 +98,17 @@
         /// if sagaEvent is failed, will start execute compentation step.
         /// </summary>
         /// <param name="sagaEvent">the event of saga step.</param>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">the transaction from ambient.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task TransitAsync(SagaEvent sagaEvent, IDbTransaction transaction = null, CancellationToken cancellationToken = default)
+        public async Task TransitAsync(SagaEvent sagaEvent, IDbConnection conn, IDbTransaction transaction, CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"{sagaEvent.EventType} - Succeeded: {sagaEvent.Succeeded}");
 
-            using var session = _repositoryFactory.OpenSession();
+            // should not close connection
+            var session = _repositoryFactory.OpenSession(conn);
+
+            // transction commit by Barrier service.
             session.StartTransaction(transaction);
             var sagaRepository = session.ConstructSagaRepository();
             var eventLogRepository = session.ConstructEventLogRepository();
@@ -117,23 +124,23 @@
                 {
                     await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
                 }
-
-                session.CommitTransaction();
             }
             catch (Exception ex)
             {
-                session.RollbackTransaction();
                 _logger.LogError(ex, $"Failed to save the saga {saga}");
                 throw;
             }
 
             if (nextStepEvents != null)
             {
+                using var session2 = _repositoryFactory.OpenSession();
+                var eventLogRepository2 = session.ConstructEventLogRepository();
+
                 foreach (var @event in nextStepEvents)
                 {
-                    await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
+                    await eventLogRepository2.MarkEventAsInProgressAsync(@event.Id);
                     _eventPublisher.Publish(@event, cancellationToken);
-                    await eventLogRepository.MarkEventAsPublishedAsync(@event.Id);
+                    await eventLogRepository2.MarkEventAsPublishedAsync(@event.Id);
                 }
             }
         }

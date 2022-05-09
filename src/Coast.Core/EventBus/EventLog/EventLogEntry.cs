@@ -1,10 +1,7 @@
-﻿namespace Coast.Core.EventBus.IntegrationEventLog
+﻿namespace Coast.Core.EventBus.EventLog
 {
     using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations.Schema;
     using System.Linq;
-    using System.Text;
     using System.Text.Json;
 
     public class EventLogEntry
@@ -19,10 +16,7 @@
             EventId = @event.Id;
             CreationTime = @event.CreationDate;
             EventTypeName = @event.EventName ?? @event.GetType().FullName;
-            Content = JsonSerializer.Serialize(@event, @event.GetType(), new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+            Content = JsonSerializer.Serialize(@event, @event.GetType());
             State = EventStateEnum.NotPublished;
             TimesSent = 0;
         }
@@ -42,11 +36,5 @@
         public DateTime CreationTime { get; private set; }
 
         public string Content { get; private set; }
-
-        public EventLogEntry DeserializeJsonContent(Type type)
-        {
-            IntegrationEvent = JsonSerializer.Deserialize(Content, type, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true }) as IntegrationEvent;
-            return this;
-        }
     }
 }

@@ -6,7 +6,7 @@
     using System.Text;
     using Coast.Core;
     using Coast.Core.DataLayer;
-    using Coast.Core.EventBus.IntegrationEventLog;
+    using Coast.Core.EventBus.EventLog;
     using Coast.PostgreSql.Service;
 
     public class WrapperSession : IWapperSession, IDisposable
@@ -32,15 +32,19 @@
         public void CommitTransaction()
         {
             _transaction?.Commit();
+            _connection?.Close();
         }
 
         public void RollbackTransaction()
         {
             _transaction?.Rollback();
+            _connection?.Close();
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
+            _transaction?.Commit();
             _connection?.Close();
         }
 

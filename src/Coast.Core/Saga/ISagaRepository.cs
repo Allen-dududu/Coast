@@ -9,12 +9,20 @@
     public interface ISagaRepository
     {
         /// <summary>
-        /// Persist the saga and the sgag steps to the database.
+        /// only persist the saga to the database.
         /// </summary>
         /// <param name="saga">the data of the saga.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
-        public Task AddSagaAsync(Saga saga, CancellationToken cancellationToken = default);
+        public Task SaveSagaAsync(Saga saga, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        ///  only the sgag steps to the database.
+        /// </summary>
+        /// <param name="saga">the data of the saga.</param>
+        /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
+        /// <returns>A <see cref="Task"/> representing the result of the asynchronous operation.</returns>
+        public Task SaveSagaStepsAsync(Saga saga, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Uodate the saga and the sgag steps.

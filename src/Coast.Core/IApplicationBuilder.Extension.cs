@@ -9,7 +9,7 @@
     public static class ApplicationBuilderExtension
     {
         public static IApplicationBuilder CoastSubscribe<T, TH>(this IApplicationBuilder app) 
-            where T : IEventRequestBody
+            where T : EventRequestBody
             where TH : ISagaHandler<T>
         {
             var evebtBus = (IEventBus)app.ApplicationServices.GetService(typeof(IEventBus));

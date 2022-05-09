@@ -13,6 +13,8 @@ namespace Coast.Core
 
         public string DomainName { get; set; }
 
+        public string Schema { get; set; }
+
         public string? WorkerId { get; set; }
 
         internal IList<Action<IServiceCollection>> Extensions { get; } = new List<Action<IServiceCollection>>();
@@ -28,7 +30,7 @@ namespace Coast.Core
         /// <param name="extension">action of IServiceCollection.</param>
         public void RegisterExtension(Action<IServiceCollection> extension)
         {
-            if (extension == null)
+            if (extension is null)
             {
                 throw new ArgumentNullException(nameof(extension));
             }

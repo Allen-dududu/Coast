@@ -8,7 +8,7 @@
     using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.EventBus;
-    using Coast.Core.EventBus.IntegrationEventLog;
+    using Coast.Core.EventBus.EventLog;
     using Coast.PostgreSql.Connection;
     using Dapper;
     using Microsoft.EntityFrameworkCore.Storage;
@@ -84,7 +84,7 @@ WHERE ""EventId"" = @EventId";
 
         public async Task SaveEventAsync(IEnumerable<IntegrationEvent> @events, CancellationToken cancellationToken = default)
         {
-            foreach(var e in @events)
+            foreach (var e in @events)
             {
                 await SaveEventAsync(e, cancellationToken);
             }

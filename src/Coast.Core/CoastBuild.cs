@@ -12,7 +12,7 @@
 
         public IServiceCollection _Services { get; }
 
-        public CoastBuild AddMessageHandler<T>() where T : class, IIntegrationEventHandler
+        public CoastBuild AddMessageHandler<T>() where T : class, EventHandler
         {
             _Services.AddTransient<T>();
             return this;

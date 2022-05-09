@@ -28,21 +28,23 @@ namespace Coast.PostgreSql
         }
 
         /// <inheritdoc/>
-        public async Task InitializeAsync(CancellationToken cancellationToken)
+        public async Task InitializeAsync(string schema, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
 
-            var sql = CreateTableSql();
-            using var connection = _connectionProvider.GetAdventureWorksConnection();
+            var sql = CreateTableSql(schema);
+            using var connection = _connectionProvider.OpenConnection();
             await connection.ExecuteAsync(sql).ConfigureAwait(false);
         }
 
-        private string CreateTableSql()
+        private string CreateTableSql(string schema)
         {
             var sql = $@"
+CREATE SCHEMA IF NOT EXISTS ""{schema}"";
+
 CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
     ""Id"" bigint PRIMARY KEY NOT NULL,
     ""TransactionType"" int NOT NULL,

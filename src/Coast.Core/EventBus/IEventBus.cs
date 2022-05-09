@@ -7,7 +7,7 @@
         void Publish(IntegrationEvent @event, CancellationToken cancellationToken = default);
 
         void Subscribe<T, TH>()
-            where T : IEventRequestBody
+            where T : EventRequestBody
             where TH : ISagaHandler<T>;
 
         void Subscribe<TH>(string eventName)
@@ -15,7 +15,7 @@
 
         void Unsubscribe<T, TH>()
             where TH : ISagaHandler<T>
-            where T : IEventRequestBody;
+            where T : EventRequestBody;
 
         void Unsubscribe<TH>(string eventName)
             where TH : ISagaHandler;
