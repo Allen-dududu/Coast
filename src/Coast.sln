@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.PostgreSql", "Coast.P
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demo", "Demo", "{396A9BE9-BCAF-4495-96D7-10EAC6B5E09C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Payment", "Demo\Saga-RabbitMQ-PostgreSql\Payment.csproj", "{D25B055A-F9DF-4449-BD55-3F0ADE922547}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Payment", "Demo\Payment\Payment.csproj", "{D25B055A-F9DF-4449-BD55-3F0ADE922547}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.RabbitMQ", "Coast.RabbitMQ\Coast.RabbitMQ.csproj", "{28F3717E-F6BD-4FF2-BC69-FC0A45B4E319}"
 EndProject
@@ -24,7 +24,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coast.Core.Test", "Coast.Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SetupMigrations", "SetupMigrations\SetupMigrations.csproj", "{B2E45E6E-4432-4584-8325-9AA5DE8AFD50}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stock", "Demo\Saga-RabbitMQ-PostgreSql-2\Stock.csproj", "{08CC507A-CDA2-4FE7-8125-A3FDEC4001BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stock", "Demo\Stock\Stock.csproj", "{08CC507A-CDA2-4FE7-8125-A3FDEC4001BD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderManagement", "Demo\OrderManagement\OrderManagement.csproj", "{5400D530-2379-497D-A578-10B9D85F1A78}"
 EndProject

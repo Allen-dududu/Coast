@@ -16,7 +16,7 @@ namespace Coast.Core.Test
 @"INSERT INTO ""Coast_Saga"" 
 (""Id"", ""State"", ""CreationTime"") 
 VALUES (@Id, @State, @CreationTime); ";
-        [Fact]
+        [Fact(Skip = "For transaction test")]
         public async Task Test1Async()
         {
             using var conn = new NpgsqlConnection("Host=localhost;Port=5432;database=postgres;User Id=postgres;Password=root;");
