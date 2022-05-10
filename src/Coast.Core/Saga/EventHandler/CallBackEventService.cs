@@ -22,6 +22,7 @@
             _repositoryFactory = serviceProvider.GetService<IRepositoryFactory>();
             _barrierService = serviceProvider.GetService<IBarrierService>();
             _connectionProvider = serviceProvider.GetService<IConnectionProvider>();
+            _logger = serviceProvider.GetService<ILogger<CallBackEventService>>();
         }
 
         public async Task<List<SagaEvent>> ProcessEventAsync(SagaEvent @event)
@@ -42,7 +43,7 @@
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<List<SagaEvent>> TransitAsync(SagaEvent sagaEvent, IDbConnection conn, IDbTransaction transaction, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation($"{sagaEvent.EventType} - Succeeded: {sagaEvent.Succeeded}");
+            _logger.LogInformation($"{sagaEvent.StepType} - Succeeded: {sagaEvent.Succeeded}");
 
             // should not close connection
             var session = _repositoryFactory.OpenSession(conn);
@@ -55,19 +56,11 @@
             var saga = await sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
             var nextStepEvents = saga.ProcessEvent(sagaEvent);
 
-            try
-            {
-                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+            await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
 
-                if (nextStepEvents != null)
-                {
-                    await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
-                }
-            }
-            catch (Exception ex)
+            if (nextStepEvents != null)
             {
-                _logger.LogError(ex, $"Failed to save the saga {saga}");
-                throw;
+                await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
             }
 
             return nextStepEvents;

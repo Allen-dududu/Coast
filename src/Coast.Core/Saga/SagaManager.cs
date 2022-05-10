@@ -32,9 +32,6 @@
         public async Task<Saga> CreateAsync(IEnumerable<EventRequestBody> steps = default, CancellationToken cancellationToken = default)
         {
             var saga = new Saga(steps);
-            using var session = _repositoryFactory.OpenSession();
-            var sagaRepository = session.ConstructSagaRepository();
-            await sagaRepository.SaveSagaAsync(saga, cancellationToken);
             return saga;
         }
 
@@ -58,32 +55,24 @@
 
             var @sagaEvents = saga.Start();
 
-            using var session = _repositoryFactory.OpenSession();
-            using var transaction = session.StartTransaction();
-
-            var sagaRepository = session.ConstructSagaRepository();
-            var eventLogRepository = session.ConstructEventLogRepository();
-
-            try
+            using (var session = _repositoryFactory.OpenSession())
             {
-                await sagaRepository.SaveSagaStepsAsync(saga, cancellationToken);
-                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+                session.StartTransaction();
+
+                var sagaRepository = session.ConstructSagaRepository();
+                var eventLogRepository = session.ConstructEventLogRepository();
+
+                await sagaRepository.SaveSagaAsync(saga, cancellationToken);
                 if (@sagaEvents != null)
                 {
                     await eventLogRepository.SaveEventAsync(@sagaEvents, cancellationToken);
                 }
-
-                transaction.Commit();
-            }
-            catch (Exception ex)
-            {
-                transaction.Rollback();
-                _logger.LogError(ex, $"Failed to save the saga {saga}");
-                throw;
             }
 
             if (@sagaEvents != null)
             {
+                using var session = _repositoryFactory.OpenSession();
+                var eventLogRepository = session.ConstructEventLogRepository();
                 foreach (var @event in @sagaEvents)
                 {
                     await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
@@ -103,7 +92,7 @@
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task TransitAsync(SagaEvent sagaEvent, IDbConnection conn, IDbTransaction transaction, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation($"{sagaEvent.EventType} - Succeeded: {sagaEvent.Succeeded}");
+            _logger.LogInformation($"{sagaEvent.StepType} - Succeeded: {sagaEvent.Succeeded}");
 
             // should not close connection
             var session = _repositoryFactory.OpenSession(conn);

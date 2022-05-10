@@ -39,13 +39,13 @@
                     if (handler is null) continue;
 
                     var eventType = _subsManager.GetEventTypeByName(eventName);
-                    if (@event.EventType == TransactionStepTypeEnum.Commit)
+                    if (@event.StepType == TransactionStepTypeEnum.Commit)
                     {
                         (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, @event.RequestBody, subscription, TransactionStepTypeEnum.Commit);
                         await Task.Yield();
                         await (Task)concreteType.GetMethod("CommitAsync").Invoke(handler, new object[] { eventDataObj });
                     }
-                    else if (@event.EventType == TransactionStepTypeEnum.Compensate)
+                    else if (@event.StepType == TransactionStepTypeEnum.Compensate)
                     {
                         (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, @event.RequestBody, subscription, TransactionStepTypeEnum.Compensate);
                         await Task.Yield();

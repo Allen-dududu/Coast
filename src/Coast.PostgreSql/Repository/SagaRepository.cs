@@ -15,25 +15,25 @@
     {
         private const string InsertSagaSql =
 @"INSERT INTO ""Coast_Saga"" 
-(""Id"", ""State"", ""CreationTime"", ""CurrentStep"") 
-VALUES (@Id, @State, @CreationTime, @CurrentStep ); ";
+(""Id"", ""State"", ""CreationTime"", ""CurrentExecutionSequenceNumber"") 
+VALUES (@Id, @State, @CreationTime, @CurrentExecutionSequenceNumber ); ";
 
         private const string insertSagaStepSql =
 @"INSERT INTO ""Coast_SagaStep"" 
-(""Id"", ""CorrelationId"", ""EventName"", ""HasCompensation"", ""State"", ""RequestBody"", ""CreationTime"", ""FailedReason"", ""ExecuteOrder"") 
-VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody, @CreationTime,@FailedReason, @ExecuteOrder); ";
+(""Id"", ""CorrelationId"", ""EventName"", ""HasCompensation"", ""State"", ""RequestBody"", ""CreationTime"", ""FailedReason"", ""ExecutionSequenceNumber"") 
+VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody, @CreationTime,@FailedReason, @ExecutionSequenceNumber); ";
 
         private const string QuerySagaSql =
-@"SELECT ""Id"", ""State"", ""CurrentStep""
+@"SELECT ""Id"", ""State"", ""CurrentExecutionSequenceNumber""
 FROM ""Coast_Saga"" where ""Id"" = @Id;";
 
         private const string QuerySagaStepSql =
-@"SELECT ""Id"", ""CorrelationId"", ""EventName"",""HasCompensation"", ""State"", ""RequestBody"", ""FailedReason"", ""CreationTime"" ,""ExecuteOrder"" 
+@"SELECT ""Id"", ""CorrelationId"", ""EventName"",""HasCompensation"", ""State"", ""RequestBody"", ""FailedReason"", ""CreationTime"" ,""ExecutionSequenceNumber"" 
 FROM ""Coast_SagaStep"" where ""CorrelationId"" = @CorrelationId;";
 
         private const string UpdateSagaSql =
 @"UPDATE ""Coast_Saga""
-SET ""State"" = @State, ""CurrentStep"" = @CurrentStep 
+SET ""State"" = @State, ""CurrentExecutionSequenceNumber"" = @CurrentExecutionSequenceNumber 
 WHERE ""Id"" = @Id";
 
         private const string UpdateSagaStepSql =
@@ -60,7 +60,7 @@ WHERE ""Id"" = @Id";
 
             await _connection.ExecuteAsync(
                     InsertSagaSql,
-                    new { Id = saga.Id, State = SagaStateEnum.Started, CreationTime = DateTime.UtcNow, CurrentStep = saga.CurrenExecuteOrder },
+                    new { Id = saga.Id, State = SagaStateEnum.Started, CreationTime = DateTime.UtcNow, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber },
                     transaction: _transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)
@@ -72,12 +72,12 @@ WHERE ""Id"" = @Id";
                         Id = step.Id,
                         CorrelationId = saga.Id,
                         EventName = step.EventName,
-                        State = SagaStepStateEnum.Awaiting,
+                        State = step.State,
                         RequestBody = step.RequestBody,
                         CreationTime = DateTime.UtcNow,
                         HasCompensation = step.HasCompensation,
                         FailedReason = step.FailedReason,
-                        ExecuteOrder = step.ExecuteOrder,
+                        ExecutionSequenceNumber = step.ExecutionSequenceNumber,
                     },
                     transaction: _transaction).ConfigureAwait(false);
             }
@@ -101,7 +101,7 @@ WHERE ""Id"" = @Id";
                         CreationTime = DateTime.UtcNow,
                         HasCompensation = step.HasCompensation,
                         FailedReason = step.FailedReason,
-                        ExecuteOrder = step.ExecuteOrder,
+                        ExecutionSequenceNumber = step.ExecutionSequenceNumber,
                     },
                     transaction: _transaction).ConfigureAwait(false);
             }
@@ -132,7 +132,7 @@ WHERE ""Id"" = @Id";
 
             await _connection.ExecuteAsync(
                     UpdateSagaSql,
-                    new { Id = saga.Id, State = saga.State, CurrentStep = saga.CurrenExecuteOrder},
+                    new { Id = saga.Id, State = saga.State, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber},
                     transaction: _transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)

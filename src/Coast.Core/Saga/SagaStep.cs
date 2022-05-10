@@ -14,30 +14,30 @@
 
         }
 
-        public SagaStep(long correlationId, EventRequestBody sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
+        public SagaStep(long correlationId, EventRequestBody sagaRequestBody, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
         {
-            if (executeOrder < 0)
+            if (executionSequenceNumber < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(executeOrder), "executeOrder should be positive integer or 0");
+                throw new ArgumentOutOfRangeException(nameof(executionSequenceNumber), "ExecutionSequenceNumber should be positive integer or 0");
             }
 
             CorrelationId = correlationId;
-            ExecuteOrder = executeOrder;
+            ExecutionSequenceNumber = executionSequenceNumber;
             EventName = sagaRequestBody.GetType().Name;
             RequestBody = JsonSerializer.Serialize(sagaRequestBody, sagaRequestBody.GetType());
             HasCompensation = hasCompensation;
         }
 
-        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = false, int executeOrder = int.MaxValue)
+        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
         {
-            if (executeOrder < 0)
+            if (executionSequenceNumber < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(executeOrder), "executeOrder should be positive integer or 0");
+                throw new ArgumentOutOfRangeException(nameof(executionSequenceNumber), "ExecutionSequenceNumber should be positive integer or 0");
             }
 
             CorrelationId = correlationId;
             EventName = eventName;
-            ExecuteOrder = executeOrder;
+            ExecutionSequenceNumber = executionSequenceNumber;
             RequestBody = JsonSerializer.Serialize(sagaRequestBody, sagaRequestBody.GetType());
             HasCompensation = hasCompensation;
         }
@@ -69,7 +69,7 @@
         /// <summary>
         /// Gets or sets the order in which saga step is executed.
         /// </summary>
-        public int ExecuteOrder { get; set; }
+        public int ExecutionSequenceNumber { get; set; }
 
         public SagaEvent GetStepEvents(long sagaId)
         {
@@ -77,11 +77,11 @@
             {
                 EventName = EventName,
                 StepId = Id,
-                EventType = TransactionStepTypeEnum.Commit,
+                StepType = TransactionStepTypeEnum.Commit,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
-                DomainName = CoastConstant.DomainName,
+                CallBackEventName = CoastConstant.DomainName + CoastConstant.CallBackEventSuffix,
             };
         }
 
@@ -96,11 +96,11 @@
             {
                 EventName = EventName,
                 StepId = Id,
-                EventType = TransactionStepTypeEnum.Compensate,
+                StepType = TransactionStepTypeEnum.Compensate,
                 CorrelationId = CorrelationId,
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
-                DomainName = CoastConstant.DomainName,
+                CallBackEventName = CoastConstant.DomainName + CoastConstant.CallBackEventSuffix,
             };
         }
     }

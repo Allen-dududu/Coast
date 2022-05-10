@@ -74,7 +74,7 @@
 
         private void CheckRequirement()
         {
-            var eventBus = _serviceProvider.GetRequiredService<IEventBus>();
+            var eventBus = _serviceProvider.GetService<IEventBus>();
             if (eventBus == null)
             {
                 throw new InvalidOperationException(

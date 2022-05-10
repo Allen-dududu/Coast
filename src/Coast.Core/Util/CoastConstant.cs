@@ -10,6 +10,6 @@
 
         internal static string WorkerId { get; set; }
 
-        public static string CallBackEventSuffix { get; set; } = ".CallBack.Coast";
+        public static string CallBackEventSuffix { get; } = ".CallBack.Coast";
     }
 }

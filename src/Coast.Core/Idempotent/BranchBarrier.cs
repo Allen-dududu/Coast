@@ -39,6 +39,10 @@
             IRepositoryFactory repositoryFactory)
         {
             _sagaEvent = @event;
+            TransactionType = @event.TransactionType;
+            CorrelationId = @event.CorrelationId;
+            StepId = @event.StepId;
+            StepType = @event.StepType;
             _branchBarrierRepository = branchBarrierRepository;
             _logger = logger;
             _repositoryFactory = repositoryFactory;
@@ -74,10 +78,10 @@
             try
             {
                 (int affected1, string error1) = await _branchBarrierRepository.InsertBarrierAsync(conn,
-                                                                                                   _sagaEvent.TransactionType,
-                                                                                                   _sagaEvent.CorrelationId,
-                                                                                                   _sagaEvent.StepId,
-                                                                                                   _sagaEvent.EventType,
+                                                                                                   TransactionType,
+                                                                                                   CorrelationId,
+                                                                                                   StepId,
+                                                                                                   StepType,
                                                                                                    trans);
 
                 int affected2 = 0;
@@ -125,10 +129,10 @@
             try
             {
                 (int affected1, string error1) = await _branchBarrierRepository.InsertBarrierAsync(conn,
-                                                                                                   _sagaEvent.TransactionType,
-                                                                                                   _sagaEvent.CorrelationId,
-                                                                                                   _sagaEvent.StepId,
-                                                                                                   _sagaEvent.EventType,
+                                                                                                   TransactionType,
+                                                                                                   CorrelationId,
+                                                                                                   StepId,
+                                                                                                   StepType,
                                                                                                    trans);
 
                 int affected2 = 0;
@@ -157,6 +161,7 @@
                     return result;
                 }
 
+                _logger.LogDebug($"The event has been consumed. CorrelationId={CorrelationId}, TransactionType={TransactionType}, StepId={StepId}, StepType={StepType}");
                 return default(T);
             }
             catch (Exception ex)

@@ -59,7 +59,7 @@ ON ""Coast_Barrier"" (""TransactionType"", ""CorrelationId"", ""StepId"", ""Step
 CREATE TABLE IF NOT EXISTS ""Coast_Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
     ""State"" int NOT NULL,
-    ""CurrentStep"" bigint NULL,
+    ""CurrentExecutionSequenceNumber"" bigint NULL,
     ""CreationTime"" TIMESTAMP NULL
 ) ;
 
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS ""Coast_SagaStep""(
     ""RequestBody"" text NULL,
     ""FailedReason"" text NULL,
     ""CreationTime"" TIMESTAMP NULL,
-    ""ExecuteOrder"" int NOT NULL,
+    ""ExecutionSequenceNumber"" int NOT NULL,
     ""PublishedTime"" TIMESTAMP NULL
 ) ;
 CREATE INDEX IF NOT EXISTS SagaStep_idx ON ""Coast_SagaStep"" (""CorrelationId"");
