@@ -43,7 +43,7 @@
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<List<SagaEvent>> TransitAsync(SagaEvent sagaEvent, IDbConnection conn, IDbTransaction transaction, CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation($"{sagaEvent.StepType} - Succeeded: {sagaEvent.Succeeded}");
+            _logger.LogDebug($"Event Name: {sagaEvent.EventName}, {sagaEvent.StepType} - Succeeded: {sagaEvent.Succeeded}");
 
             // should not close connection
             var session = _repositoryFactory.OpenSession(conn);

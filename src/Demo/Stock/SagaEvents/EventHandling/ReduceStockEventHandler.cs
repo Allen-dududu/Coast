@@ -13,6 +13,7 @@ namespace Stock.SagaEvents.EventHandling
 
         public Task CommitAsync(ReduceStockRequest @event)
         {
+            throw new NotImplementedException();
             Console.WriteLine($"ReduceStock {@event.Number}");
             return Task.CompletedTask;
         }

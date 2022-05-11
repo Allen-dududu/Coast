@@ -81,57 +81,5 @@
                 }
             }
         }
-
-        /// <summary>
-        /// Transit to new saga step.
-        /// if sagaEvent is failed, will start execute compentation step.
-        /// </summary>
-        /// <param name="sagaEvent">the event of saga step.</param>
-        /// <param name="transaction">the transaction from ambient.</param>
-        /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task TransitAsync(SagaEvent sagaEvent, IDbConnection conn, IDbTransaction transaction, CancellationToken cancellationToken = default)
-        {
-            _logger.LogInformation($"{sagaEvent.StepType} - Succeeded: {sagaEvent.Succeeded}");
-
-            // should not close connection
-            var session = _repositoryFactory.OpenSession(conn);
-
-            // transction commit by Barrier service.
-            session.StartTransaction(transaction);
-            var sagaRepository = session.ConstructSagaRepository();
-            var eventLogRepository = session.ConstructEventLogRepository();
-
-            var saga = await sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
-            var nextStepEvents = saga.ProcessEvent(sagaEvent);
-
-            try
-            {
-                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
-
-                if (nextStepEvents != null)
-                {
-                    await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to save the saga {saga}");
-                throw;
-            }
-
-            if (nextStepEvents != null)
-            {
-                using var session2 = _repositoryFactory.OpenSession();
-                var eventLogRepository2 = session.ConstructEventLogRepository();
-
-                foreach (var @event in nextStepEvents)
-                {
-                    await eventLogRepository2.MarkEventAsInProgressAsync(@event.Id);
-                    _eventPublisher.Publish(@event, cancellationToken);
-                    await eventLogRepository2.MarkEventAsPublishedAsync(@event.Id);
-                }
-            }
-        }
     }
 }

@@ -21,9 +21,9 @@ namespace OrderManagement.Controllers
             var saga = await _sagaManager.CreateAsync();
 
             // Deduct $100
-            saga.AddStep(new DeductionRequest() { Money = 101 });
+            saga.AddStep(new DeductionRequest() { Money = 101 }, hasCompensation: true, executeOrder:1);
             // Reduce a pair of shoes in stock
-            saga.AddStep(new ReduceStockRequest() { Number = 1 });
+            saga.AddStep(new ReduceStockRequest() { Number = 1 }, hasCompensation: true, executeOrder: 1);
 
             await _sagaManager.StartAsync(saga);
 

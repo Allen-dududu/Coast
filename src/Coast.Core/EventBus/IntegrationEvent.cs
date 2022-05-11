@@ -27,6 +27,8 @@
 
         public bool Succeeded { get; set; }
 
+        public short FailedCount { get; set; }
+
         public string DomainName { get; set; } = CoastConstant.DomainName;
 
         public string CallBackEventName { get; set; }

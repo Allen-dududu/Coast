@@ -179,15 +179,20 @@
             if (CurrentSagaStepGroup.All(i => i.State > SagaStepStateEnum.Started))
             {
                 List<SagaEvent>? @firingEvents = null;
-                switch (currentStep.State)
+
+                if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Succeeded))
                 {
-                    case SagaStepStateEnum.Succeeded:
-                        @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
-                        break;
-                    case SagaStepStateEnum.Compensated:
-                    case SagaStepStateEnum.Failed:
-                        @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
-                        break;
+                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
+                }
+                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed))
+                {
+                    @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
+                }
+                else if (CurrentSagaStepGroup.Any(i => i.State == SagaStepStateEnum.Failed))
+                {
+                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.HasCompensation == true).ToList();
+                    needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
+                    @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
                 }
 
                 UpdateSagaState();
@@ -233,10 +238,10 @@
 
         private void CancelSubsequentSteps()
         {
-            var currentStepIdx = SagaStepGroups.FindIndex(x => x.Key == CurrentExecutionSequenceNumber);
-            if (currentStepIdx >= 0)
+            var currentStepGroupId = SagaStepGroups.FindIndex(x => x.Key == CurrentExecutionSequenceNumber);
+            if (currentStepGroupId >= 0)
             {
-                for (var idx = currentStepIdx + 1; idx < SagaStepGroups.Count; idx++)
+                for (var idx = currentStepGroupId + 1; idx < SagaStepGroups.Count; idx++)
                 {
                     SagaStepGroups[idx].ToList().ForEach(i => i.State = SagaStepStateEnum.Cancelled);
                 }

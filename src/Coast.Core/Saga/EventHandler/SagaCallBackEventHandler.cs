@@ -37,10 +37,6 @@
 
         public async Task CommitAsync(string @event)
         {
-            //var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
-
-            //using var connection = _connectionProvider.OpenConnection();
-            //await barrier.Call(connection, async (connection, trans) => await _sagaManager.TransitAsync(@event, connection, trans));
         }
     }
 }
