@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Text;
     using static Coast.Core.EventBus.InMemoryEventBusSubscriptionsManager;
 
     public interface IEventBusSubscriptionsManager

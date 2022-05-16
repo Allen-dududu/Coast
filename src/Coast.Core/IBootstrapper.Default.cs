@@ -1,10 +1,5 @@
 ﻿namespace Coast.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Coast.Core.EventBus;
     using Coast.Core.MigrationManager;
     using Coast.Core.Processor;
@@ -12,18 +7,24 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     internal class Bootstrapper : BackgroundService, IBootstrapper
     {
         private readonly IServiceProvider _serviceProvider;
-
+        private readonly IOptions<DBOptions> _options;
         private readonly ILogger<Bootstrapper> _logger;
 
         private IEnumerable<IProcessingServer> _processors = default;
 
-        public Bootstrapper(IServiceProvider serviceProvider, ILogger<Bootstrapper> logger)
+        public Bootstrapper(IServiceProvider serviceProvider, IOptions<DBOptions> options, ILogger<Bootstrapper> logger)
         {
             _serviceProvider = serviceProvider;
+            _options = options;
             _logger = logger;
         }
 
@@ -42,8 +43,7 @@
             try
             {
                 _processors = _serviceProvider.GetServices<IProcessingServer>();
-
-                await _serviceProvider.GetRequiredService<ICoastDBInitializer>().InitializeAsync(option.Schema, stoppingToken);
+                await _serviceProvider.GetRequiredService<ICoastDBInitializer>().InitializeAsync(_options.Value.Schema, stoppingToken);
             }
             catch (Exception e)
             {

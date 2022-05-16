@@ -1,10 +1,7 @@
 ﻿using Dapper;
 using Npgsql;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -32,7 +29,7 @@ VALUES (@Id, @State, @CreationTime); ";
             tr.Commit();
         }
 
-        private async Task ChangeDb(IDbConnection db , IDbTransaction tx)
+        private async Task ChangeDb(IDbConnection db, IDbTransaction tx)
         {
             var conn2 = new NpgsqlConnection("Host=localhost;Port=5432;database=postgres;User Id=alean;Password=alean;");
             await db.ExecuteAsync(

@@ -1,17 +1,14 @@
 ﻿namespace Coast.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
     public class DBOptions
     {
         public const string DefaultSchema = "Coast";
 
         /// <summary>
-        /// Gets or sets the table name prefix to use when creating database objects.
+        /// Gets or sets the schema to use when creating database objects.
+        /// Default is <see cref="DefaultSchema" />.
         /// </summary>
-        public string TableNamePrefix { get; set; } = DefaultSchema;
+        public string Schema { get; set; } = DefaultSchema;
 
         /// <summary>
         /// Data version.

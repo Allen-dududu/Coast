@@ -1,62 +1,44 @@
 ﻿namespace Coast.PostgreSql.Repository
 {
+    using Coast.Core;
+    using Dapper;
     using System;
-    using System.Collections.Generic;
     using System.Data;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Coast.Core;
-    using Coast.PostgreSql.Connection;
-    using Dapper;
 
     public class SagaRepository : ISagaRepository
     {
-        private const string InsertSagaSql =
-@"INSERT INTO ""Coast_Saga"" 
-(""Id"", ""State"", ""CreationTime"", ""CurrentExecutionSequenceNumber"") 
-VALUES (@Id, @State, @CreationTime, @CurrentExecutionSequenceNumber ); ";
-
-        private const string insertSagaStepSql =
-@"INSERT INTO ""Coast_SagaStep"" 
-(""Id"", ""CorrelationId"", ""EventName"", ""HasCompensation"", ""State"", ""RequestBody"", ""CreationTime"", ""FailedReason"", ""ExecutionSequenceNumber"") 
-VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody, @CreationTime,@FailedReason, @ExecutionSequenceNumber); ";
-
-        private const string QuerySagaSql =
-@"SELECT ""Id"", ""State"", ""CurrentExecutionSequenceNumber""
-FROM ""Coast_Saga"" where ""Id"" = @Id;";
-
-        private const string QuerySagaStepSql =
-@"SELECT ""Id"", ""CorrelationId"", ""EventName"",""HasCompensation"", ""State"", ""RequestBody"", ""FailedReason"", ""CreationTime"" ,""ExecutionSequenceNumber"" 
-FROM ""Coast_SagaStep"" where ""CorrelationId"" = @CorrelationId;";
-
-        private const string UpdateSagaSql =
-@"UPDATE ""Coast_Saga""
-SET ""State"" = @State, ""CurrentExecutionSequenceNumber"" = @CurrentExecutionSequenceNumber 
-WHERE ""Id"" = @Id";
-
-        private const string UpdateSagaStepSql =
-@"UPDATE ""Coast_SagaStep""
-SET ""State"" = @State, ""FailedReason"" = @FailedReason 
-WHERE ""Id"" = @Id";
-
         private IDbConnection _connection;
         private IDbTransaction _transaction;
+        private readonly string _sagaTableName;
+        private readonly string _sagaStepTableName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SagaRepository"/> class.
         /// </summary>
-        public SagaRepository(IDbConnection connection, IDbTransaction transaction = null)
+        public SagaRepository(string schemaName, IDbConnection connection, IDbTransaction transaction = null)
         {
             _connection = connection;
             _transaction = transaction;
+            _sagaTableName = $"\"{schemaName}\".\"Saga\"";
+            _sagaStepTableName = $"\"{schemaName}\".\"SagaStep\"";
         }
 
         /// <inheritdoc/>
         public async Task SaveSagaAsync(Saga saga, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            string InsertSagaSql =
+$@"INSERT INTO {_sagaTableName} 
+(""Id"", ""State"", ""CreationTime"", ""CurrentExecutionSequenceNumber"") 
+VALUES (@Id, @State, @CreationTime, @CurrentExecutionSequenceNumber ); ";
+            string InsertSagaStepSql =
+$@"INSERT INTO {_sagaStepTableName}
+(""Id"", ""CorrelationId"", ""EventName"", ""HasCompensation"", ""State"", ""RequestBody"", ""CreationTime"", ""FailedReason"", ""ExecutionSequenceNumber"") 
+VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody, @CreationTime,@FailedReason, @ExecutionSequenceNumber); ";
 
             await _connection.ExecuteAsync(
                     InsertSagaSql,
@@ -66,7 +48,7 @@ WHERE ""Id"" = @Id";
             foreach (var step in saga.SagaSteps)
             {
                 await _connection.ExecuteAsync(
-                    insertSagaStepSql,
+                    InsertSagaStepSql,
                     new
                     {
                         Id = step.Id,
@@ -87,10 +69,15 @@ WHERE ""Id"" = @Id";
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            string InsertSagaStepSql =
+$@"INSERT INTO {_sagaStepTableName}
+(""Id"", ""CorrelationId"", ""EventName"", ""HasCompensation"", ""State"", ""RequestBody"", ""CreationTime"", ""FailedReason"", ""ExecutionSequenceNumber"") 
+VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody, @CreationTime,@FailedReason, @ExecutionSequenceNumber); ";
+
             foreach (var step in saga.SagaSteps)
             {
                 await _connection.ExecuteAsync(
-                    insertSagaStepSql,
+                    InsertSagaStepSql,
                     new
                     {
                         Id = step.Id,
@@ -112,9 +99,17 @@ WHERE ""Id"" = @Id";
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            string QuerySagaSql =
+$@"SELECT ""Id"", ""State"", ""CurrentExecutionSequenceNumber""
+FROM {_sagaTableName} where ""Id"" = @Id;";
+
+            string QuerySagaStepSql =
+$@"SELECT ""Id"", ""CorrelationId"", ""EventName"",""HasCompensation"", ""State"", ""RequestBody"", ""FailedReason"", ""CreationTime"" ,""ExecutionSequenceNumber"" 
+FROM  {_sagaStepTableName}  where ""CorrelationId"" = @CorrelationId;";
+
             var saga = await _connection.QuerySingleAsync<Saga>(
                     QuerySagaSql,
-                    new { Id = sagaId}).ConfigureAwait(false);
+                    new { Id = sagaId }).ConfigureAwait(false);
 
             var sagaSteps = await _connection.QueryAsync<SagaStep>(
                     QuerySagaStepSql,
@@ -130,9 +125,19 @@ WHERE ""Id"" = @Id";
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            string UpdateSagaSql =
+$@"UPDATE {_sagaTableName}
+SET ""State"" = @State, ""CurrentExecutionSequenceNumber"" = @CurrentExecutionSequenceNumber 
+WHERE ""Id"" = @Id";
+
+            string UpdateSagaStepSql =
+$@"UPDATE {_sagaStepTableName}
+SET ""State"" = @State, ""FailedReason"" = @FailedReason 
+WHERE ""Id"" = @Id";
+
             await _connection.ExecuteAsync(
                     UpdateSagaSql,
-                    new { Id = saga.Id, State = saga.State, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber},
+                    new { Id = saga.Id, State = saga.State, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber },
                     transaction: _transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)

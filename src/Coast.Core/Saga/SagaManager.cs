@@ -1,14 +1,12 @@
 ﻿namespace Coast.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
     using Microsoft.Extensions.Logging;
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class SagaManager : ISagaManager
     {

@@ -1,11 +1,8 @@
 ﻿namespace Coast.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Text.Json;
-    using Coast.Core.EventBus;
     using Coast.Core.Util;
+    using System;
+    using System.Text.Json;
 
     public class SagaStep
     {

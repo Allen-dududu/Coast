@@ -1,6 +1,5 @@
 ﻿namespace Coast.Core
 {
-    using Coast.Core.EventBus;
     using Microsoft.Extensions.DependencyInjection;
 
     public sealed class CoastBuild

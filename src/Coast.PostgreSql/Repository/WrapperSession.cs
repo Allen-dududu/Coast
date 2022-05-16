@@ -1,22 +1,22 @@
 ﻿namespace Coast.PostgreSql.Repository
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Text;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus.EventLog;
     using Coast.PostgreSql.Service;
+    using System;
+    using System.Data;
 
     public class WrapperSession : IWapperSession, IDisposable
     {
         private IDbConnection _connection;
         private IDbTransaction _transaction;
+        private readonly string _schemaName;
 
-        public WrapperSession(IDbConnection dbConnection)
+        public WrapperSession(IDbConnection dbConnection, string schemaName)
         {
             _connection = dbConnection ?? throw new Exception("DB connection cannot be null");
+            _schemaName = schemaName;
             if (_connection.State != ConnectionState.Open)
             {
                 _connection.Open();
@@ -50,12 +50,12 @@
 
         public ISagaRepository ConstructSagaRepository()
         {
-            return new SagaRepository(_connection, _transaction);
+            return new SagaRepository(_schemaName, _connection, _transaction);
         }
 
         public IEventLogRepository ConstructEventLogRepository()
         {
-            return new EventLogRepository(_connection, _transaction);
+            return new EventLogRepository(_schemaName, _connection, _transaction);
         }
     }
 }

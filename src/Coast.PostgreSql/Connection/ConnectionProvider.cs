@@ -1,12 +1,9 @@
 ﻿namespace Coast.PostgreSql.Connection
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Text;
     using Coast.Core;
     using Microsoft.Extensions.Options;
     using Npgsql;
+    using System.Data;
 
     public class ConnectionProvider : IConnectionProvider
     {

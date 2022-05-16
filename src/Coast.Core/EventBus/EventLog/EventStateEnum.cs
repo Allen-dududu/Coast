@@ -1,9 +1,5 @@
 ﻿namespace Coast.Core.EventBus.EventLog
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
     public enum EventStateEnum
     {
         NotPublished = 0,

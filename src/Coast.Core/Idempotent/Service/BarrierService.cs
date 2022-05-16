@@ -1,12 +1,9 @@
 ﻿namespace Coast.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
     using Coast.Core.DataLayer;
-    using Coast.Core.EventBus.EventLog;
     using Coast.Core.Idempotent;
     using Microsoft.Extensions.Logging;
+    using System;
 
     public class DefaultBarrierService : IBarrierService
     {

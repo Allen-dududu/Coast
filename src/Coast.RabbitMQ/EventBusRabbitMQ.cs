@@ -1,12 +1,5 @@
 namespace Coast.RabbitMQ
 {
-    using System;
-    using System.Net.Sockets;
-    using System.Text;
-    using System.Text.Json;
-    using System.Text.Json.Nodes;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
@@ -18,6 +11,12 @@ namespace Coast.RabbitMQ
     using Microsoft.Extensions.Logging;
     using Polly;
     using Polly.Retry;
+    using System;
+    using System.Net.Sockets;
+    using System.Text;
+    using System.Text.Json;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public class EventBusRabbitMQ : IEventBus, IDisposable
     {
@@ -259,7 +258,7 @@ namespace Coast.RabbitMQ
                 @event.Succeeded = false;
                 @event.ErrorMessage = ex.Message;
                 _logger.LogWarning(ex, "----- ERROR Processing message \"{Message}\"", message);
-                
+
                 // todo
                 // 补偿消息失败到一定次数后，发送到死信队列，又用户决定处理。
             }

@@ -1,32 +1,34 @@
 ﻿namespace Coast.PostgreSql.Repository
 {
-    using System;
-    using System.Data;
     using Coast.Core;
     using Coast.Core.DataLayer;
-    using Coast.PostgreSql.Connection;
+    using Microsoft.Extensions.Options;
+    using Npgsql;
+    using System;
+    using System.Data;
 
     internal class RepositoryFactory : IRepositoryFactory, IDisposable
     {
         private IDbConnection _connection;
-        private IDbTransaction _transaction;
 
-        private readonly IConnectionProvider _connectionProvider;
+        private readonly IOptions<DBOptions> _options;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RepositoryFactory"/> class.
-        /// </summary>
-        /// <param name="_options">Db configuration.</param>
-        public RepositoryFactory(IConnectionProvider connectionProvider)
+        public RepositoryFactory(IOptions<DBOptions> options)
         {
-            _connectionProvider = connectionProvider;
+            this._options = options;
         }
 
         public IWapperSession OpenSession(IDbConnection dbConnection = null)
         {
-            var connection = dbConnection ?? _connectionProvider.OpenConnection();
-            _connection = connection;
-            return new WrapperSession(connection);
+            _connection = dbConnection ?? OpenConnection();
+            return new WrapperSession(_connection, _options.Value.Schema);
+        }
+
+        public IDbConnection OpenConnection()
+        {
+            var conn = new NpgsqlConnection(_options.Value.ConnectionString);
+            conn.Open();
+            return conn;
         }
 
         public void Dispose()

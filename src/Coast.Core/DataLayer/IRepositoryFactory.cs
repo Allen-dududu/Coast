@@ -1,11 +1,6 @@
 ﻿namespace Coast.Core.DataLayer
 {
-    using System;
-    using System.Collections.Generic;
     using System.Data;
-    using System.Text;
-    using Coast.Core.DataLayer;
-    using Coast.Core.EventBus.EventLog;
 
     public interface IRepositoryFactory
     {

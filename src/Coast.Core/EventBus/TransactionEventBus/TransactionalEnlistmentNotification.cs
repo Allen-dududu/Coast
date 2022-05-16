@@ -1,11 +1,9 @@
 ﻿namespace Coast.Core.EventBus.TransactionEventBus
 {
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
-    using System.Text;
-    using System.Threading.Tasks;
     using System.Transactions;
-    using Microsoft.Extensions.Logging;
 
     public class TransactionalEnlistmentNotification :
         IEnlistmentNotification

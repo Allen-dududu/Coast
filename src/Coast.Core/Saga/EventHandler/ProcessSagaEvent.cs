@@ -1,13 +1,10 @@
 ﻿namespace Coast.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using System.Text.Json;
-    using System.Text.Json.Nodes;
-    using System.Threading.Tasks;
     using Coast.Core.EventBus;
     using Microsoft.Extensions.Logging;
+    using System;
+    using System.Text.Json;
+    using System.Threading.Tasks;
     using static Coast.Core.EventBus.InMemoryEventBusSubscriptionsManager;
 
     public class ProcessSagaEvent : IProcessSagaEvent
@@ -63,7 +60,7 @@
             }
         }
 
-        private (dynamic eventDataObj, Type concreteType) ConvertEventDataAndConcreteType(Type eventType,string message, SubscriptionInfo subscription, TransactionStepTypeEnum stepType)
+        private (dynamic eventDataObj, Type concreteType) ConvertEventDataAndConcreteType(Type eventType, string message, SubscriptionInfo subscription, TransactionStepTypeEnum stepType)
         {
             dynamic eventDataObj;
             Type concreteType;

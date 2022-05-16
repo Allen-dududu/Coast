@@ -1,8 +1,8 @@
 namespace Coast.Core
 {
+    using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
-    using Microsoft.Extensions.DependencyInjection;
 
     public class CoastOptions
     {
@@ -12,8 +12,6 @@ namespace Coast.Core
         public int FailedRetryCount { get; set; }
 
         public string DomainName { get; set; }
-
-        public string Schema { get; set; }
 
         public string? WorkerId { get; set; }
 

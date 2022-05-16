@@ -1,6 +1,5 @@
 ﻿namespace Coast.Core
 {
-    using System.Data;
     using System.Threading.Tasks;
 
     public interface ISagaHandler : ICommitEventHandler, ICancelEventHandler

@@ -4,8 +4,6 @@ using Moq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using static Coast.Core.EventBus.InMemoryEventBusSubscriptionsManager;
@@ -32,7 +30,7 @@ namespace Coast.Core.Test
             var sagaEvent = new SagaEvent();
             sagaEvent.EventName = eventName;
             sagaEvent.StepType = TransactionStepTypeEnum.Commit;
-            sagaEvent.RequestBody = JsonConvert.SerializeObject(new SagaMessageMock() { Money = 101});
+            sagaEvent.RequestBody = JsonConvert.SerializeObject(new SagaMessageMock() { Money = 101 });
             //var message = "{\"CorrelationId\":5035038954235457537,\"SagaStepId\":5035038954235457538,\"EventType\":0,\"RequestBody\":\"{\\\"Money\\\":101}\",\"ErrorMessage\":null,\"Headers\":null,\"Id\":5035038954235457540,\"CreationDate\":\"2022-05-08T17:16:41.7827586Z\",\"EventName\":\"DeductionRequest\",\"TransactionType\":0,\"Succeeded\":false,\"DomainName\":\"OrderManagement\"}";
             var message = JsonConvert.SerializeObject(sagaEvent);
             var sagaHandlerMock = new SagaHandlerMock();

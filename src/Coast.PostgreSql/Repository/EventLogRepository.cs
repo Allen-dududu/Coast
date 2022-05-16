@@ -1,45 +1,28 @@
 ﻿namespace Coast.PostgreSql.Service
 {
+    using Coast.Core.EventBus;
+    using Coast.Core.EventBus.EventLog;
+    using Dapper;
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Coast.Core;
-    using Coast.Core.EventBus;
-    using Coast.Core.EventBus.EventLog;
-    using Coast.PostgreSql.Connection;
-    using Dapper;
-    using Microsoft.EntityFrameworkCore.Storage;
-    using Microsoft.Extensions.Options;
 
     public class EventLogRepository : IEventLogRepository
     {
-        private const string InsertEventLogSql =
-@"INSERT INTO ""Coast_EventLog"" 
-(""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"") 
-VALUES (@EventId, @CreationTime, @EventTypeName, @Content, @State, @TimesSent); ";
-
-        private const string QueryEventLogSql =
-@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
-FROM ""Coast_EventLog"" where ""EventId"" = @EventId;";
-
-        private const string UpdateEventLogSql =
-@"UPDATE ""Coast_EventLog""
-SET ""State"" = @State, ""TimesSent"" = @TimesSent 
-WHERE ""EventId"" = @EventId";
-
-        private IDbConnection _connection;
-        private IDbTransaction _transaction;
+        private readonly IDbConnection _connection;
+        private readonly IDbTransaction _transaction;
+        private readonly string _tableName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventLogRepository"/> class.
         /// </summary>
-        public EventLogRepository(IDbConnection connection, IDbTransaction transaction = null)
+        public EventLogRepository(string schemaName, IDbConnection connection, IDbTransaction transaction = null)
         {
             _connection = connection;
             _transaction = transaction;
+            _tableName = $"\"{schemaName}\".\"EventLog\"";
         }
 
         public Task MarkEventAsFailedAsync(long eventId, CancellationToken cancellationToken = default)
@@ -59,12 +42,21 @@ WHERE ""EventId"" = @EventId";
 
         public Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync(Guid transactionId, CancellationToken cancellationToken = default)
         {
+            string QueryEventLogSql =
+@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
+FROM ""Coast_EventLog"" where ""EventId"" = @EventId;";
+
             throw new NotImplementedException();
         }
 
         public async Task SaveEventAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            string InsertEventLogSql =
+$@"INSERT INTO {_tableName} 
+(""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"") 
+VALUES (@EventId, @CreationTime, @EventTypeName, @Content, @State, @TimesSent); ";
 
             var eventLogEntry = new EventLogEntry(@event);
 
@@ -90,8 +82,19 @@ WHERE ""EventId"" = @EventId";
             }
         }
 
-        private async Task UpdateEventState(long eventId, EventStateEnum State)
+        private async Task UpdateEventState(long eventId, EventStateEnum State, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string QueryEventLogSql =
+@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
+FROM ""Coast_EventLog"" where ""EventId"" = @EventId;";
+
+            string UpdateEventLogSql =
+$@"UPDATE {_tableName}
+SET ""State"" = @State, ""TimesSent"" = @TimesSent 
+WHERE ""EventId"" = @EventId";
+
             var eventLogEntry = await _connection.QuerySingleAsync<EventLogEntry>(
                 QueryEventLogSql,
                 new

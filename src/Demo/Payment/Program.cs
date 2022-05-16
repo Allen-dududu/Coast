@@ -1,6 +1,6 @@
-using Coast.RabbitMQ;
-using Coast.PostgreSql;
 using Coast.Core;
+using Coast.PostgreSql;
+using Coast.RabbitMQ;
 using Payment.SagaEvents.EventHandling;
 using Payment.SagaEvents.Events;
 
@@ -12,8 +12,6 @@ builder.Services.AddControllers();
 builder.Services.AddCosat(x =>
 {
     x.DomainName = "Payment";
-    x.Schema = "public";
-
     x.UseRabbitMQ("localhost", "Payment", 5);
     x.UsePostgreSql("Host=localhost;Port=5432;database=Payment;User Id=postgres;Password=root;"
 );

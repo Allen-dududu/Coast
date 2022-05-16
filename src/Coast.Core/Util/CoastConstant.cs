@@ -1,9 +1,5 @@
 ﻿namespace Coast.Core.Util
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
     public static class CoastConstant
     {
         internal static string DomainName { get; set; }

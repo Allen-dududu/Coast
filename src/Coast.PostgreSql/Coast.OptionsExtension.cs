@@ -1,7 +1,5 @@
 namespace Coast.PostgreSql
 {
-    using System;
-    using System.Data.Common;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.Idempotent;
@@ -10,6 +8,7 @@ namespace Coast.PostgreSql
     using Coast.PostgreSql.Repository;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using System;
 
     /// <summary>
     /// CoastOptions Extensions for postgreSql.
@@ -23,20 +22,29 @@ namespace Coast.PostgreSql
         /// <param name="connectionString">connectionString.</param>
         /// <returns>CoastOptions.</returns>
         /// <exception cref="ArgumentNullException">connectionString should not be empty.</exception>
-        public static CoastOptions UsePostgreSql(this CoastOptions options, string connectionString)
+        public static CoastOptions UsePostgreSql(this CoastOptions options, string connectionString, string schema = null)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ArgumentNullException(nameof(connectionString));
             }
 
-            options.RegisterExtension(serviceCollection => serviceCollection.Configure<DBOptions>(db => db.ConnectionString = connectionString));
+            options.RegisterExtension(serviceCollection =>
+            {
+                IServiceCollection serviceCollection1 = serviceCollection.Configure<DBOptions>(db =>
+                {
+                    db.ConnectionString = connectionString;
+                    if (!string.IsNullOrWhiteSpace(schema))
+                    {
+                        db.Schema = schema;
+                    }
+                });
+            });
+
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IConnectionProvider, ConnectionProvider>());
             options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<ICoastDBInitializer, CoastDBInitializer>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IRepositoryFactory, RepositoryFactory>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IBranchBarrierRepository, BranchBarrierRepository>());
-
-            
 
             return options;
         }

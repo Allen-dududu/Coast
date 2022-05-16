@@ -1,6 +1,5 @@
 namespace Coast.RabbitMQ
 {
-    using System;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
@@ -8,12 +7,15 @@ namespace Coast.RabbitMQ
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
+    using System;
 
     public static class CoastOptionsExtension
     {
         public static CoastOptions UseRabbitMQ(this CoastOptions options, string hostName, string subscriptionClientName, int retryCount)
         {
-            return options.UseRabbitMQ(new ConnectionFactory() { HostName = hostName,
+            return options.UseRabbitMQ(new ConnectionFactory()
+            {
+                HostName = hostName,
                 DispatchConsumersAsync = true
             }, subscriptionClientName, retryCount);
         }

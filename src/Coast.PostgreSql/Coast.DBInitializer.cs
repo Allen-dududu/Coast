@@ -1,15 +1,10 @@
 namespace Coast.PostgreSql
 {
-    using System;
-    using System.Data;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.MigrationManager;
-    using Coast.PostgreSql.Connection;
     using Dapper;
-    using Microsoft.Extensions.Options;
-    using Npgsql;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Init DataBase. Create table.
@@ -43,9 +38,9 @@ namespace Coast.PostgreSql
         private string CreateTableSql(string schema)
         {
             var sql = $@"
-CREATE SCHEMA IF NOT EXISTS ""{schema}"";
+CREATE SCHEMA IF NOT EXISTS ""{schema}""; 
 
-CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
+CREATE TABLE IF NOT EXISTS ""{schema}"".""Barrier""( 
     ""Id"" bigint PRIMARY KEY NOT NULL,
     ""TransactionType"" int NOT NULL,
 	""CorrelationId"" bigint NOT NULL,
@@ -53,17 +48,17 @@ CREATE TABLE IF NOT EXISTS ""Coast_Barrier""(
 	""StepType"" int NULL,
     ""CreationTime"" TIMESTAMP NULL
 );
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ""Barrier_Id""
-ON ""Coast_Barrier"" (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"");
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ""Barrier_Id"" 
+ON ""{schema}"".""Barrier"" (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"");
 
-CREATE TABLE IF NOT EXISTS ""Coast_Saga""(
+CREATE TABLE IF NOT EXISTS ""{schema}"".""Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
     ""State"" int NOT NULL,
     ""CurrentExecutionSequenceNumber"" bigint NULL,
     ""CreationTime"" TIMESTAMP NULL
 ) ;
 
-CREATE TABLE IF NOT EXISTS ""Coast_SagaStep""(
+CREATE TABLE IF NOT EXISTS ""{schema}"".""SagaStep""( 
 	""Id"" bigint NOT NULL,
     ""CorrelationId"" bigint NOT NULL,
     ""EventName"" VARCHAR(250) NOT NULL,
@@ -75,10 +70,10 @@ CREATE TABLE IF NOT EXISTS ""Coast_SagaStep""(
     ""ExecutionSequenceNumber"" int NOT NULL,
     ""PublishedTime"" TIMESTAMP NULL
 ) ;
-CREATE INDEX IF NOT EXISTS SagaStep_idx ON ""Coast_SagaStep"" (""CorrelationId"");
+CREATE INDEX IF NOT EXISTS SagaStep_idx ON ""{schema}"".""SagaStep"" (""CorrelationId"");
 
 
-CREATE TABLE IF NOT EXISTS ""Coast_EventLog"" (
+CREATE TABLE IF NOT EXISTS ""{schema}"".""EventLog"" (
     ""EventId"" bigint NOT NULL,
     ""CreationTime"" TIMESTAMP NULL,
     ""EventTypeName"" VARCHAR(250) NOT NULL,

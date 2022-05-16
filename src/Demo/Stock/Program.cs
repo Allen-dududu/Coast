@@ -1,7 +1,7 @@
 
-using Coast.RabbitMQ;
-using Coast.PostgreSql;
 using Coast.Core;
+using Coast.PostgreSql;
+using Coast.RabbitMQ;
 using Stock.SagaEvents.EventHandling;
 using Stock.SagaEvents.Events;
 
@@ -16,7 +16,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCosat(x =>
 {
     x.DomainName = "Stock";
-    x.Schema = "public";
     x.UseRabbitMQ("localhost", "Stock", 5);
     x.UsePostgreSql("Host=localhost;Port=5432;database=Stock;User Id=postgres;Password=root;"
 );

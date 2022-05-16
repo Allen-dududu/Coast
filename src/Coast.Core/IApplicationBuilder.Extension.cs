@@ -1,14 +1,11 @@
 ﻿namespace Coast.Core
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
     using Coast.Core.EventBus;
     using Microsoft.AspNetCore.Builder;
 
     public static class ApplicationBuilderExtension
     {
-        public static IApplicationBuilder CoastSubscribe<T, TH>(this IApplicationBuilder app) 
+        public static IApplicationBuilder CoastSubscribe<T, TH>(this IApplicationBuilder app)
             where T : EventRequestBody
             where TH : ISagaHandler<T>
         {

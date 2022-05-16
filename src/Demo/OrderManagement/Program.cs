@@ -1,6 +1,5 @@
-using Coast.RabbitMQ;
 using Coast.PostgreSql;
-using Coast.Core;
+using Coast.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +13,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCosat(x =>
 {
     x.DomainName = "OrderManagement";
-    x.Schema = "public";
-
     x.UseRabbitMQ("localhost", "OrderManagement", 5);
-    x.UsePostgreSql("Host=localhost;Port=5432;database=OrderManagement;User Id=postgres;Password=root;"
-);
+    x.UsePostgreSql("Host=localhost;Port=5432;database=OrderManagement;User Id=postgres;Password=root;");
 });
 
 var app = builder.Build();

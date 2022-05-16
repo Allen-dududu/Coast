@@ -1,6 +1,5 @@
 ﻿namespace Coast.Core
 {
-    using System.Collections.Generic;
     using Coast.Core.EventBus;
 
     public class SagaEvent : IntegrationEvent

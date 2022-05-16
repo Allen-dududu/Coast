@@ -1,10 +1,7 @@
 ﻿namespace Coast.PostgreSql
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Text;
     using Npgsql;
+    using System.Data;
 
     static class PostgreSqlDataConnection
     {
