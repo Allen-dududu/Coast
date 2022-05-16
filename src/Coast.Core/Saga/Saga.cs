@@ -35,19 +35,19 @@
 
         public DateTime CreationTime { get; private set; }
 
-        public int CurrenExecuteOrder { get; private set; }
+        public int CurrentExecutionSequenceNumber { get; private set; }
 
         public string? AbortingReason { get; set; }
 
-        private IEnumerable<SagaStep> CurrentSagaStepGroup => SagaSteps.Where(s => s.ExecuteOrder == CurrenExecuteOrder);
+        private IEnumerable<SagaStep> CurrentSagaStepGroup => SagaSteps.Where(s => s.ExecutionSequenceNumber == CurrentExecutionSequenceNumber);
 
-        private List<IGrouping<int, SagaStep>> SagaStepGroups => SagaSteps.GroupBy(i => i.ExecuteOrder).OrderBy(i => i.Key).ToList();
+        private List<IGrouping<int, SagaStep>> SagaStepGroups => SagaSteps.GroupBy(i => i.ExecutionSequenceNumber).OrderBy(i => i.Key).ToList();
 
         private List<SagaStep>? NextStepGroup
         {
             get
             {
-                var idx = SagaStepGroups.FindIndex(s => s.Key == CurrenExecuteOrder);
+                var idx = SagaStepGroups.FindIndex(s => s.Key == CurrentExecutionSequenceNumber);
 
                 if (idx == -1)
                 {
@@ -68,7 +68,7 @@
         {
             get
             {
-                var idx = SagaStepGroups.FindIndex(s => s.Key == CurrenExecuteOrder);
+                var idx = SagaStepGroups.FindIndex(s => s.Key == CurrentExecutionSequenceNumber);
 
                 if (idx == -1)
                 {
@@ -108,27 +108,27 @@
                 return null;
             }
 
-            SagaSteps = SagaSteps.OrderBy(i => i.ExecuteOrder).ToList();
+            SagaSteps = SagaSteps.OrderBy(i => i.ExecutionSequenceNumber).ToList();
             int maxExecuteOrderNumber = default;
 
             for (int i = 0; i < SagaSteps.Count; i++)
             {
-                if (SagaSteps[i].ExecuteOrder != int.MaxValue)
+                if (SagaSteps[i].ExecutionSequenceNumber != int.MaxValue)
                 {
-                    maxExecuteOrderNumber = SagaSteps[i].ExecuteOrder;
+                    maxExecuteOrderNumber = SagaSteps[i].ExecutionSequenceNumber;
                 }
                 else
                 {
-                    SagaSteps[i].ExecuteOrder = maxExecuteOrderNumber++;
+                    SagaSteps[i].ExecutionSequenceNumber = maxExecuteOrderNumber++;
                 }
             }
 
-            var sageStepsGroups = SagaSteps.GroupBy(i => i.ExecuteOrder).ToList();
+            var sageStepsGroups = SagaSteps.GroupBy(i => i.ExecutionSequenceNumber).ToList();
 
             if (State == SagaStateEnum.Created && SagaSteps.Any())
             {
                 var firstGroup = sageStepsGroups[0];
-                CurrenExecuteOrder = firstGroup.First().ExecuteOrder;
+                CurrentExecutionSequenceNumber = firstGroup.First().ExecutionSequenceNumber;
                 State = SagaStateEnum.Started;
 
                 foreach (var step in firstGroup)
@@ -179,15 +179,20 @@
             if (CurrentSagaStepGroup.All(i => i.State > SagaStepStateEnum.Started))
             {
                 List<SagaEvent>? @firingEvents = null;
-                switch (currentStep.State)
+
+                if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Succeeded))
                 {
-                    case SagaStepStateEnum.Succeeded:
-                        @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
-                        break;
-                    case SagaStepStateEnum.Compensated:
-                    case SagaStepStateEnum.Failed:
-                        @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
-                        break;
+                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
+                }
+                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed))
+                {
+                    @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
+                }
+                else if (CurrentSagaStepGroup.Any(i => i.State == SagaStepStateEnum.Failed))
+                {
+                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.HasCompensation == true).ToList();
+                    needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
+                    @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
                 }
 
                 UpdateSagaState();
@@ -208,7 +213,7 @@
             }
 
             next.ForEach(i => i.State = SagaStepStateEnum.Started);
-            CurrenExecuteOrder = next[0].ExecuteOrder;
+            CurrentExecutionSequenceNumber = next[0].ExecutionSequenceNumber;
             return next;
         }
 
@@ -217,7 +222,7 @@
             var prev = PreviousStepGroup;
             while (prev != null)
             {
-                CurrenExecuteOrder = prev[0].ExecuteOrder;
+                CurrentExecutionSequenceNumber = prev[0].ExecutionSequenceNumber;
                 if (prev.Any(i => i.HasCompensation))
                 {
                     var needCompensate = prev.Where(p => p.HasCompensation).ToList();
@@ -233,10 +238,10 @@
 
         private void CancelSubsequentSteps()
         {
-            var currentStepIdx = SagaStepGroups.FindIndex(x => x.Key == CurrenExecuteOrder);
-            if (currentStepIdx >= 0)
+            var currentStepGroupId = SagaStepGroups.FindIndex(x => x.Key == CurrentExecutionSequenceNumber);
+            if (currentStepGroupId >= 0)
             {
-                for (var idx = currentStepIdx + 1; idx < SagaStepGroups.Count; idx++)
+                for (var idx = currentStepGroupId + 1; idx < SagaStepGroups.Count; idx++)
                 {
                     SagaStepGroups[idx].ToList().ForEach(i => i.State = SagaStepStateEnum.Cancelled);
                 }

@@ -7,13 +7,13 @@ namespace Payment.SagaEvents.EventHandling
     {
         public Task CancelAsync(DeductionRequest @event)
         {
-            Console.WriteLine($"ReduceStock {@event.Money}");
+            Console.WriteLine($"Cancel Deduction {@event.Money}");
             return Task.CompletedTask;
         }
 
         public Task CommitAsync(DeductionRequest @event)
         {
-            Console.WriteLine($"ReduceStock {@event.Money}");
+            Console.WriteLine($"Commit Deduction {@event.Money}");
             return Task.CompletedTask;
         }
     }

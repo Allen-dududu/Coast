@@ -31,7 +31,7 @@ namespace Coast.Core.Test
             var eventName = "testCommit";
             var sagaEvent = new SagaEvent();
             sagaEvent.EventName = eventName;
-            sagaEvent.EventType = TransactionStepTypeEnum.Commit;
+            sagaEvent.StepType = TransactionStepTypeEnum.Commit;
             sagaEvent.RequestBody = JsonConvert.SerializeObject(new SagaMessageMock() { Money = 101});
             //var message = "{\"CorrelationId\":5035038954235457537,\"SagaStepId\":5035038954235457538,\"EventType\":0,\"RequestBody\":\"{\\\"Money\\\":101}\",\"ErrorMessage\":null,\"Headers\":null,\"Id\":5035038954235457540,\"CreationDate\":\"2022-05-08T17:16:41.7827586Z\",\"EventName\":\"DeductionRequest\",\"TransactionType\":0,\"Succeeded\":false,\"DomainName\":\"OrderManagement\"}";
             var message = JsonConvert.SerializeObject(sagaEvent);
@@ -57,7 +57,7 @@ namespace Coast.Core.Test
             var eventName = "testCommit";
             var sagaEvent = new SagaEvent();
             sagaEvent.EventName = eventName;
-            sagaEvent.EventType = TransactionStepTypeEnum.Compensate;
+            sagaEvent.StepType = TransactionStepTypeEnum.Compensate;
             sagaEvent.RequestBody = JsonConvert.SerializeObject(new SagaMessageMock() { Money = 101 });
 
             var sagaHandlerMock = new SagaHandlerMock();
@@ -82,7 +82,7 @@ namespace Coast.Core.Test
             var eventName = "testCommit";
             var sagaEvent = new SagaEvent();
             sagaEvent.EventName = eventName;
-            sagaEvent.EventType = TransactionStepTypeEnum.Commit;
+            sagaEvent.StepType = TransactionStepTypeEnum.Commit;
             sagaEvent.RequestBody = JsonConvert.SerializeObject(new SagaMessageMock() { Money = 101 });
 
             var sagaHandlerMock = new SagaHandlerMock2();
@@ -107,7 +107,7 @@ namespace Coast.Core.Test
             var eventName = "testCommit";
             var sagaEvent = new SagaEvent();
             sagaEvent.EventName = eventName;
-            sagaEvent.EventType = TransactionStepTypeEnum.Compensate;
+            sagaEvent.StepType = TransactionStepTypeEnum.Compensate;
             sagaEvent.RequestBody = JsonConvert.SerializeObject(new SagaMessageMock() { Money = 101 });
 
             var sagaHandlerMock = new SagaHandlerMock2();

@@ -1,5 +1,6 @@
 ﻿namespace Coast.Core.EventBus
 {
+    using Coast.Core.Util;
     using System;
 
     public class IntegrationEvent
@@ -26,13 +27,17 @@
 
         public bool Succeeded { get; set; }
 
-        public string DomainName { get; set; }
+        public short FailedCount { get; set; }
+
+        public string DomainName { get; set; } = CoastConstant.DomainName;
+
+        public string CallBackEventName { get; set; }
 
         public long CorrelationId { get; set; }
 
         public long StepId { get; set; }
 
-        public TransactionStepTypeEnum EventType { get; set; }
+        public TransactionStepTypeEnum StepType { get; set; }
 
     }
 }

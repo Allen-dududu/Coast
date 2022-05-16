@@ -231,11 +231,14 @@ namespace Coast.RabbitMQ
                 var sagaEvents = await callBackEventService.ProcessEventAsync(@event);
                 using var session = _repositoryFactory.OpenSession();
                 var eventLogRepository = session.ConstructEventLogRepository();
-                foreach (var sagaEvent in sagaEvents)
+                if (sagaEvents != null)
                 {
-                    await eventLogRepository.MarkEventAsInProgressAsync(sagaEvent.Id);
-                    Publish(sagaEvent);
-                    await eventLogRepository.MarkEventAsPublishedAsync(sagaEvent.Id);
+                    foreach (var sagaEvent in sagaEvents)
+                    {
+                        await eventLogRepository.MarkEventAsInProgressAsync(sagaEvent.Id);
+                        Publish(sagaEvent);
+                        await eventLogRepository.MarkEventAsPublishedAsync(sagaEvent.Id);
+                    }
                 }
 
                 return;
@@ -249,14 +252,16 @@ namespace Coast.RabbitMQ
                 }
 
                 await _processSagaEvent.ProcessEvent(eventName, @event);
+                @event.Succeeded = true;
             }
             catch (Exception ex)
             {
-                //_consumerChannel.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: false);
-                _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+                @event.Succeeded = false;
+                @event.ErrorMessage = ex.Message;
                 _logger.LogWarning(ex, "----- ERROR Processing message \"{Message}\"", message);
-
-                return;
+                
+                // todo
+                // 补偿消息失败到一定次数后，发送到死信队列，又用户决定处理。
             }
 
             // Even on exception we take the message off the queue.
@@ -266,10 +271,11 @@ namespace Coast.RabbitMQ
 
             var @callBackEvent = new SagaEvent()
             {
-                StepId = @event.Id,
+                StepId = @event.StepId,
                 CorrelationId = @event.CorrelationId,
-                Succeeded = true,
-                EventName = @event.DomainName
+                Succeeded = @event.Succeeded,
+                EventName = @event.CallBackEventName,
+                ErrorMessage = @event.ErrorMessage,
             };
 
             Publish(@callBackEvent);
