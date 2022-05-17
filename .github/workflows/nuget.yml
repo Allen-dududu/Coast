@@ -41,6 +41,7 @@ jobs:
           PROJECT_FILE_PATH: ./src/Coast.Core/Coast.Core.csproj
           NUGET_KEY: ${{env.NUGET_TOKEN}}
           VERSION_STATIC: ${VERSION}
+          TAG_COMMIT: false
 
     # - name: Publish Coast.Core
     #   uses: brandedoutcast/publish-nuget@v2.5.2
