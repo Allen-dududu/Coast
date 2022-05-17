@@ -1,11 +1,11 @@
 ﻿namespace Coast.Core
 {
-    using Coast.Core.DataLayer;
-    using Coast.Core.Idempotent;
-    using Microsoft.Extensions.Logging;
     using System;
     using System.Data;
     using System.Threading.Tasks;
+    using Coast.Core.DataLayer;
+    using Coast.Core.Idempotent;
+    using Microsoft.Extensions.Logging;
 
     public class BranchBarrier
     {

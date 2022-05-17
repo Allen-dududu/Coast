@@ -1,5 +1,6 @@
 namespace Coast.PostgreSql
 {
+    using System;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.Idempotent;
@@ -8,7 +9,6 @@ namespace Coast.PostgreSql
     using Coast.PostgreSql.Repository;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
-    using System;
 
     /// <summary>
     /// CoastOptions Extensions for postgreSql.

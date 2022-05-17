@@ -1,13 +1,13 @@
 ﻿namespace Coast.Core
 {
-    using Coast.Core.DataLayer;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core.DataLayer;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     public class CallBackEventService
     {

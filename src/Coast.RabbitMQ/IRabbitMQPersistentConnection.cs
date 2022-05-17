@@ -1,7 +1,7 @@
 namespace Coast.RabbitMQ
 {
-    using global::RabbitMQ.Client;
     using System;
+    using global::RabbitMQ.Client;
 
     public interface IRabbitMQPersistentConnection
         : IDisposable

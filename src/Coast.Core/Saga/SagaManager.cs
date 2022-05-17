@@ -1,12 +1,12 @@
 ﻿namespace Coast.Core
 {
-    using Coast.Core.DataLayer;
-    using Coast.Core.EventBus;
-    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core.DataLayer;
+    using Coast.Core.EventBus;
+    using Microsoft.Extensions.Logging;
 
     public class SagaManager : ISagaManager
     {
@@ -69,13 +69,9 @@
 
             if (@sagaEvents != null)
             {
-                using var session = _repositoryFactory.OpenSession();
-                var eventLogRepository = session.ConstructEventLogRepository();
                 foreach (var @event in @sagaEvents)
                 {
-                    await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
-                    _eventPublisher.Publish(@event, cancellationToken);
-                    await eventLogRepository.MarkEventAsPublishedAsync(@event.Id);
+                    await _eventPublisher.PublishWithLogAsync(@event);
                 }
             }
         }

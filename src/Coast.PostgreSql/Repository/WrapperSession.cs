@@ -1,11 +1,11 @@
 ﻿namespace Coast.PostgreSql.Repository
 {
+    using System;
+    using System.Data;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus.EventLog;
     using Coast.PostgreSql.Service;
-    using System;
-    using System.Data;
 
     public class WrapperSession : IWapperSession, IDisposable
     {

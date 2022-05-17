@@ -1,7 +1,7 @@
 ﻿namespace Coast.Core.EventBus
 {
-    using Coast.Core.Util;
     using System;
+    using Coast.Core.Util;
 
     public class IntegrationEvent
     {

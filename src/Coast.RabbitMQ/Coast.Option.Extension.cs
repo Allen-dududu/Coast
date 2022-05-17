@@ -1,5 +1,6 @@
 namespace Coast.RabbitMQ
 {
+    using System;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
@@ -7,7 +8,6 @@ namespace Coast.RabbitMQ
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
-    using System;
 
     public static class CoastOptionsExtension
     {

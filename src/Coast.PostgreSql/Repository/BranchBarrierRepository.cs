@@ -1,12 +1,12 @@
 ﻿namespace Coast.PostgreSql.Repository
 {
+    using System;
+    using System.Data;
+    using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.Idempotent;
     using Dapper;
     using Microsoft.Extensions.Options;
-    using System;
-    using System.Data;
-    using System.Threading.Tasks;
 
     public class BranchBarrierRepository : IBranchBarrierRepository
     {

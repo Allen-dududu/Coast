@@ -1,5 +1,11 @@
 namespace Coast.RabbitMQ
 {
+    using System;
+    using System.Net.Sockets;
+    using System.Text;
+    using System.Text.Json;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
@@ -11,12 +17,6 @@ namespace Coast.RabbitMQ
     using Microsoft.Extensions.Logging;
     using Polly;
     using Polly.Retry;
-    using System;
-    using System.Net.Sockets;
-    using System.Text;
-    using System.Text.Json;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     public class EventBusRabbitMQ : IEventBus, IDisposable
     {
@@ -89,6 +89,20 @@ namespace Coast.RabbitMQ
             _logger.LogTrace("Creating RabbitMQ channel to publish event: {EventId} ({EventName})", @event.Id, eventName);
 
             Send(@event.Id, eventName, message);
+        }
+
+        public async Task PublishWithLogAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)
+        {
+            using var session = _repositoryFactory.OpenSession();
+            var eventLogRepository = session.ConstructEventLogRepository();
+            if (null != await eventLogRepository.RetrieveEventLogsAsync(@event.Id))
+            {
+                await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
+                Publish(@event);
+                await eventLogRepository.MarkEventAsPublishedAsync(@event.Id);
+            }
+
+            Publish(@event);
         }
 
         private void Send(long eventId, string eventName, string message)
@@ -228,15 +242,11 @@ namespace Coast.RabbitMQ
                 // process callback event.
                 var callBackEventService = new CallBackEventService(_serviceProvider);
                 var sagaEvents = await callBackEventService.ProcessEventAsync(@event);
-                using var session = _repositoryFactory.OpenSession();
-                var eventLogRepository = session.ConstructEventLogRepository();
                 if (sagaEvents != null)
                 {
                     foreach (var sagaEvent in sagaEvents)
                     {
-                        await eventLogRepository.MarkEventAsInProgressAsync(sagaEvent.Id);
-                        Publish(sagaEvent);
-                        await eventLogRepository.MarkEventAsPublishedAsync(sagaEvent.Id);
+                        await PublishWithLogAsync(sagaEvent);
                     }
                 }
 
@@ -257,7 +267,13 @@ namespace Coast.RabbitMQ
             {
                 @event.Succeeded = false;
                 @event.ErrorMessage = ex.Message;
+                @event.FailedCount++;
                 _logger.LogWarning(ex, "----- ERROR Processing message \"{Message}\"", message);
+
+                if (@event.FailedCount > 3)
+                {
+                    return;
+                }
 
                 // todo
                 // 补偿消息失败到一定次数后，发送到死信队列，又用户决定处理。
@@ -277,7 +293,7 @@ namespace Coast.RabbitMQ
                 ErrorMessage = @event.ErrorMessage,
             };
 
-            Publish(@callBackEvent);
+            await PublishWithLogAsync(@callBackEvent);
         }
 
         private IModel CreateConsumerChannel()

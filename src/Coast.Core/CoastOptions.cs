@@ -1,8 +1,8 @@
 namespace Coast.Core
 {
-    using Microsoft.Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class CoastOptions
     {

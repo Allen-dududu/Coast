@@ -1,10 +1,10 @@
 namespace Coast.PostgreSql
 {
+    using System.Threading;
+    using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.MigrationManager;
     using Dapper;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Init DataBase. Create table.

@@ -1,10 +1,10 @@
 ﻿namespace Microsoft.Extensions.DependencyInjection
 {
+    using System;
     using Coast.Core;
     using Coast.Core.EventBus;
     using Coast.Core.Util;
     using Microsoft.Extensions.DependencyInjection.Extensions;
-    using System;
 
     public static class SetUpExtension
     {

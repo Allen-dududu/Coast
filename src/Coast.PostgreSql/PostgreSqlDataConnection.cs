@@ -1,7 +1,7 @@
 ﻿namespace Coast.PostgreSql
 {
-    using Npgsql;
     using System.Data;
+    using Npgsql;
 
     static class PostgreSqlDataConnection
     {
