@@ -1,9 +1,9 @@
 ﻿namespace Coast.Core
 {
+    using System;
     using Coast.Core.DataLayer;
     using Coast.Core.Idempotent;
     using Microsoft.Extensions.Logging;
-    using System;
 
     public class DefaultBarrierService : IBarrierService
     {

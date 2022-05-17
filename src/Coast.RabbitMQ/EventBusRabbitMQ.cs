@@ -1,5 +1,11 @@
 namespace Coast.RabbitMQ
 {
+    using System;
+    using System.Net.Sockets;
+    using System.Text;
+    using System.Text.Json;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
@@ -11,12 +17,6 @@ namespace Coast.RabbitMQ
     using Microsoft.Extensions.Logging;
     using Polly;
     using Polly.Retry;
-    using System;
-    using System.Net.Sockets;
-    using System.Text;
-    using System.Text.Json;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     public class EventBusRabbitMQ : IEventBus, IDisposable
     {

@@ -1,8 +1,8 @@
 ﻿namespace Coast.Core
 {
-    using Coast.Core.Util;
     using System;
     using System.Text.Json;
+    using Coast.Core.Util;
 
     public class SagaStep
     {

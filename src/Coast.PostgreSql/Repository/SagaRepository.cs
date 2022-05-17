@@ -1,12 +1,12 @@
 ﻿namespace Coast.PostgreSql.Repository
 {
-    using Coast.Core;
-    using Dapper;
     using System;
     using System.Data;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core;
+    using Dapper;
 
     public class SagaRepository : ISagaRepository
     {

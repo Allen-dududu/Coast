@@ -1,11 +1,11 @@
 ﻿namespace Coast.PostgreSql.Repository
 {
+    using System;
+    using System.Data;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Microsoft.Extensions.Options;
     using Npgsql;
-    using System;
-    using System.Data;
 
     internal class RepositoryFactory : IRepositoryFactory, IDisposable
     {

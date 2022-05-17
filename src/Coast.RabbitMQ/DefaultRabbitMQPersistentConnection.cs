@@ -1,14 +1,14 @@
 namespace Coast.RabbitMQ
 {
+    using System;
+    using System.IO;
+    using System.Net.Sockets;
     using global::RabbitMQ.Client;
     using global::RabbitMQ.Client.Events;
     using global::RabbitMQ.Client.Exceptions;
     using Microsoft.Extensions.Logging;
     using Polly;
     using Polly.Retry;
-    using System;
-    using System.IO;
-    using System.Net.Sockets;
 
     public class DefaultRabbitMQPersistentConnection
        : IRabbitMQPersistentConnection

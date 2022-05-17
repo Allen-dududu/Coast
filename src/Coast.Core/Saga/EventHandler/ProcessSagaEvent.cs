@@ -1,10 +1,10 @@
 ﻿namespace Coast.Core
 {
-    using Coast.Core.EventBus;
-    using Microsoft.Extensions.Logging;
     using System;
     using System.Text.Json;
     using System.Threading.Tasks;
+    using Coast.Core.EventBus;
+    using Microsoft.Extensions.Logging;
     using static Coast.Core.EventBus.InMemoryEventBusSubscriptionsManager;
 
     public class ProcessSagaEvent : IProcessSagaEvent
