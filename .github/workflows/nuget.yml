@@ -1,3 +1,4 @@
+name: Publish to Nuget
 on:
   push:
     tags:
@@ -11,29 +12,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
 
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Verify commit exists in origin/main
+      run: |
+        git fetch --no-tags --prune --depth=1 origin +refs/heads/*:refs/remotes/origin/*
+        git branch --remote --contains | grep origin/main
+    - name: Set VERSION variable from tag
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\/v/}" >> $GITHUB_ENV
+   
     - name: Install dependencies
       working-directory: ./src
-      run: dotnet restore 
-      
-    - name: Build ✔️
-      working-directory: ./src
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet restore
 
-    - name: Run automated tests 🧪
+    - name: Build
       working-directory: ./src
-      run: dotnet test -c Release --no-build
+      run: dotnet build --configuration Release /p:Version=${VERSION}
+
+    - name: Test
+      working-directory: ./src
+      run: dotnet test --configuration Release /p:Version=${VERSION} --no-build
 
     - name: Publish Coast.Core
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
+          PACKAGE_NAME: Coast.Core
           PROJECT_FILE_PATH: ./src/Coast.Core/Coast.Core.csproj
           NUGET_KEY: ${{env.NUGET_TOKEN}}
+          VERSION_STATIC: ${VERSION}
 
     # - name: Publish Coast.Core
     #   uses: brandedoutcast/publish-nuget@v2.5.2
