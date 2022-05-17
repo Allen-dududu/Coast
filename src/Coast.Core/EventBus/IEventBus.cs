@@ -1,10 +1,13 @@
 ﻿namespace Coast.Core.EventBus
 {
     using System.Threading;
+    using System.Threading.Tasks;
 
     public interface IEventBus
     {
         void Publish(IntegrationEvent @event, CancellationToken cancellationToken = default);
+
+        Task PublishWithLogAsync(IntegrationEvent @event, CancellationToken cancellationToken = default);
 
         void Subscribe<T, TH>()
             where T : EventRequestBody
