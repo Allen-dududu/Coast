@@ -1,8 +1,8 @@
 ﻿namespace Coast.Core.DataLayer
 {
-    using Coast.Core.EventBus.EventLog;
     using System;
     using System.Data;
+    using Coast.Core.EventBus.EventLog;
 
     public interface IWapperSession : IDisposable
     {

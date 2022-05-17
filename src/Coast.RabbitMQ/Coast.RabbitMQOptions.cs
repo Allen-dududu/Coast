@@ -1,9 +1,9 @@
 namespace Coast.RabbitMQ
 {
-    using global::RabbitMQ.Client;
-    using global::RabbitMQ.Client.Events;
     using System;
     using System.Collections.Generic;
+    using global::RabbitMQ.Client;
+    using global::RabbitMQ.Client.Events;
 
     public class RabbitMQOptions
     {

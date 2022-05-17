@@ -1,13 +1,13 @@
 ﻿namespace Coast.PostgreSql.Service
 {
-    using Coast.Core.EventBus;
-    using Coast.Core.EventBus.EventLog;
-    using Dapper;
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core.EventBus;
+    using Coast.Core.EventBus.EventLog;
+    using Dapper;
 
     public class EventLogRepository : IEventLogRepository
     {

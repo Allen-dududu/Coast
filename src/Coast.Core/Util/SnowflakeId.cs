@@ -1,9 +1,9 @@
 ﻿namespace Coast.Core
 {
-    using Coast.Core.Util;
     using System;
     using System.Net.NetworkInformation;
     using System.Threading;
+    using Coast.Core.Util;
 
     public class SnowflakeId
     {

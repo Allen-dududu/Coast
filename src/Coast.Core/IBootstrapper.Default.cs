@@ -1,5 +1,9 @@
 ﻿namespace Coast.Core
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Coast.Core.EventBus;
     using Coast.Core.MigrationManager;
     using Coast.Core.Processor;
@@ -8,10 +12,6 @@
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     internal class Bootstrapper : BackgroundService, IBootstrapper
     {
