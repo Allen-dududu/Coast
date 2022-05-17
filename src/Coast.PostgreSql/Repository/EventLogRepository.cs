@@ -40,13 +40,22 @@
             return UpdateEventState(eventId, EventStateEnum.Published);
         }
 
-        public Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync(Guid transactionId, CancellationToken cancellationToken = default)
+        public async Task<EventLogEntry> RetrieveEventLogsAsync(long eventId, CancellationToken cancellationToken = default)
         {
             string QueryEventLogSql =
-@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
-FROM ""Coast_EventLog"" where ""EventId"" = @EventId;";
+$@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
+FROM {_tableName}  where ""EventId"" = @EventId;";
 
-            throw new NotImplementedException();
+            return await _connection.QuerySingleOrDefaultAsync<EventLogEntry>(QueryEventLogSql, new { EventId = eventId }).ConfigureAwait(false);
+        }
+
+        public async Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync(long eventId, CancellationToken cancellationToken = default)
+        {
+            string QueryEventLogSql =
+$@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
+FROM {_tableName} where ""EventId"" = @EventId and ""State"" = {EventStateEnum.InProgress};";
+
+            return await _connection.QueryAsync<EventLogEntry>(QueryEventLogSql, new { EventId = eventId }).ConfigureAwait(false);
         }
 
         public async Task SaveEventAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)
