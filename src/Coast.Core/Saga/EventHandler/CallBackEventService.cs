@@ -16,21 +16,19 @@
 
         private readonly IBarrierService _barrierService;
         private readonly ILogger<CallBackEventService> _logger;
-        private readonly IConnectionProvider _connectionProvider;
         private readonly IRepositoryFactory _repositoryFactory;
 
         public CallBackEventService(IServiceProvider serviceProvider)
         {
             _repositoryFactory = serviceProvider.GetService<IRepositoryFactory>();
             _barrierService = serviceProvider.GetService<IBarrierService>();
-            _connectionProvider = serviceProvider.GetService<IConnectionProvider>();
             _logger = serviceProvider.GetService<ILogger<CallBackEventService>>();
         }
 
         public async Task<List<SagaEvent>> ProcessEventAsync(SagaEvent @event)
         {
 
-            using var connection = _connectionProvider.OpenConnection();
+            using var connection = _repositoryFactory.OpenConnection();
             var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
             var result = await barrier.Call<List<SagaEvent>>(connection, async (connection, trans) => await TransitAsync(@event, connection, trans));
             return result;
