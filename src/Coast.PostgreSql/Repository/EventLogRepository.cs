@@ -87,7 +87,7 @@ VALUES (@EventId, @CreationTime, @EventTypeName, @Content, @State, @TimesSent); 
         {
             foreach (var e in @events)
             {
-                await SaveEventAsync(e, cancellationToken);
+                await SaveEventAsync(e, cancellationToken).ConfigureAwait(false);
             }
         }
 

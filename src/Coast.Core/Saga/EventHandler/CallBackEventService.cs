@@ -30,20 +30,20 @@
 
             using var session = _repositoryFactory.OpenSession(connection);
             var sagaRepository = session.ConstructSagaRepository();
-            var saga = await sagaRepository.GetSagaByIdAsync(@event.CorrelationId);
+            var saga = await sagaRepository.GetSagaByIdAsync(@event.CorrelationId).ConfigureAwait(false);
 
             if (saga.CurrentSagaStepGroup.Count > 1)
             {
                 using var distributedLock = _distributedLockProvider.CreateLock();
-                if (!await distributedLock.TryAcquireLockAsync(saga.Id + saga.CurrentExecutionSequenceNumber))
+                if (!await distributedLock.TryAcquireLockAsync(saga.Id + saga.CurrentExecutionSequenceNumber).ConfigureAwait(false))
                 {
-                    await Task.Delay(1000);
+                    await Task.Delay(1000).ConfigureAwait(false);
                     return (true, null);
                 }
             }
 
             var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
-            var result = await barrier.Call<List<SagaEvent>>(connection, async (connection, trans) => await TransitAsync(@event, connection, trans));
+            var result = await barrier.Call<List<SagaEvent>>(connection, async (connection, trans) => await TransitAsync(@event, connection, trans)).ConfigureAwait(false);
             return (false, result);
         }
 
@@ -67,14 +67,14 @@
             var sagaRepository = session.ConstructSagaRepository();
             var eventLogRepository = session.ConstructEventLogRepository();
 
-            var saga = await sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
+            var saga = await sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken).ConfigureAwait(false);
             var nextStepEvents = saga.ProcessEvent(sagaEvent);
 
-            await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+            await sagaRepository.UpdateSagaAsync(saga, cancellationToken).ConfigureAwait(false);
 
             if (nextStepEvents != null)
             {
-                await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
+                await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken).ConfigureAwait(false);
             }
 
             return nextStepEvents;

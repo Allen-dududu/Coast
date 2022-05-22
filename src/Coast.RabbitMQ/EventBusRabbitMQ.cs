@@ -95,11 +95,11 @@ namespace Coast.RabbitMQ
         {
             using var session = _repositoryFactory.OpenSession();
             var eventLogRepository = session.ConstructEventLogRepository();
-            if (null != await eventLogRepository.RetrieveEventLogsAsync(@event.Id))
+            if (null != await eventLogRepository.RetrieveEventLogsAsync(@event.Id).ConfigureAwait(false))
             {
-                await eventLogRepository.MarkEventAsInProgressAsync(@event.Id);
+                await eventLogRepository.MarkEventAsInProgressAsync(@event.Id).ConfigureAwait(false);
                 Publish(@event);
-                await eventLogRepository.MarkEventAsPublishedAsync(@event.Id);
+                await eventLogRepository.MarkEventAsPublishedAsync(@event.Id).ConfigureAwait(false);
             }
             else
             {
@@ -243,7 +243,7 @@ namespace Coast.RabbitMQ
             {
                 // process callback event.
                 var callBackEventService = new CallBackEventService(_serviceProvider);
-                var (reject, sagaEvents) = await callBackEventService.ProcessEventAsync(@event);
+                var (reject, sagaEvents) = await callBackEventService.ProcessEventAsync(@event).ConfigureAwait(false);
                 if (reject)
                 {
                     _consumerChannel.BasicReject(eventArgs.DeliveryTag, requeue: true);
@@ -256,7 +256,7 @@ namespace Coast.RabbitMQ
                     {
                         foreach (var sagaEvent in sagaEvents)
                         {
-                            await PublishWithLogAsync(sagaEvent);
+                            await PublishWithLogAsync(sagaEvent).ConfigureAwait(false);
                         }
                     }
                 }
@@ -267,7 +267,7 @@ namespace Coast.RabbitMQ
             // Saga Event
             try
             {
-                await _processSagaEvent.IdempotentProcessEvent(eventName, @event);
+                await _processSagaEvent.IdempotentProcessEvent(eventName, @event).ConfigureAwait(false);
                 @event.Succeeded = true;
             }
             catch (Exception ex)
@@ -300,7 +300,7 @@ namespace Coast.RabbitMQ
                 ErrorMessage = @event.ErrorMessage,
             };
 
-            await PublishWithLogAsync(@callBackEvent);
+            await PublishWithLogAsync(@callBackEvent).ConfigureAwait(false);
         }
 
         private IModel CreateConsumerChannel()
