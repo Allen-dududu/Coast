@@ -75,6 +75,26 @@
                     }
                 }
             });
+
+            foreach (var item in _processors)
+            {
+                stoppingToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    item.Start(stoppingToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // ignore
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Starting the processors throw an exception.");
+                }
+            }
+
+            return;
         }
 
         private void CheckRequirement()

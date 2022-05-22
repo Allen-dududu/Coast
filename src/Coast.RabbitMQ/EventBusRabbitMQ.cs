@@ -50,7 +50,7 @@ namespace Coast.RabbitMQ
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
             _callBackEventName = coastOptions.DomainName + CoastConstant.CallBackEventSuffix;
-            _queueName = queueName ?? coastOptions.DomainName;
+            _queueName = string.IsNullOrWhiteSpace(queueName) ? coastOptions.DomainName + CoastConstant.QueueNameSuffix : queueName + CoastConstant.QueueNameSuffix;
             _consumerChannel = CreateConsumerChannel();
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
@@ -88,7 +88,7 @@ namespace Coast.RabbitMQ
 
             _logger.LogTrace("Creating RabbitMQ channel to publish event: {EventId} ({EventName})", @event.Id, eventName);
 
-            Send(@event.Id, eventName, message);
+            Publish(@event.Id, eventName, message);
         }
 
         public async Task PublishWithLogAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)
@@ -107,7 +107,7 @@ namespace Coast.RabbitMQ
             }
         }
 
-        private void Send(long eventId, string eventName, string message)
+        public void Publish(long eventId, string eventName, string message)
         {
             if (!_persistentConnection.IsConnected)
             {
