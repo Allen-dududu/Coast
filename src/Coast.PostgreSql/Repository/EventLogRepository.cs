@@ -96,8 +96,8 @@ VALUES (@EventId, @CreationTime, @EventTypeName, @Content, @State, @TimesSent); 
             cancellationToken.ThrowIfCancellationRequested();
 
             string QueryEventLogSql =
-@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
-FROM ""Coast_EventLog"" where ""EventId"" = @EventId;";
+$@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
+FROM {_tableName} where ""EventId"" = @EventId;";
 
             string UpdateEventLogSql =
 $@"UPDATE {_tableName}

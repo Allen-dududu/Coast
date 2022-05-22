@@ -1,4 +1,4 @@
-﻿namespace Coast.PostgreSql.DistributedLock
+﻿namespace Coast.PostgreSql
 {
     using System;
     using System.Collections.Generic;
@@ -8,7 +8,7 @@
     using Microsoft.Extensions.Logging;
     using Npgsql;
 
-    internal class DistributedLock : IDistributedLock
+    public class DistributedLock : IDistributedLock
     {
         private readonly ILogger _logger;
         private bool _disposed;
@@ -24,7 +24,7 @@
 
         public async Task<bool> TryExecuteInDistributedLock(long lockId, Func<Task> exclusiveLockTask)
         {
-            var hasLockedAcquired = await TryAcquireLockAsync(lockId);
+            var hasLockedAcquired = await TryAcquireLockAsync(lockId).ConfigureAwait(false);
 
             if (!hasLockedAcquired)
             {
@@ -43,26 +43,26 @@
             return true;
         }
 
-        private async Task<bool> TryAcquireLockAsync(long lockId)
+        public async Task<bool> TryAcquireLockAsync(long lockId)
         {
             var sessionLockCommand = $"SELECT pg_try_advisory_lock({lockId})";
-            _logger.LogInformation("Trying to acquire session lock for Lock Id {@LockId}", lockId);
+            _logger.LogTrace("Trying to acquire session lock for Lock Id {@LockId}", lockId);
             var commandQuery = new NpgsqlCommand(sessionLockCommand, _connection);
             var result = await commandQuery.ExecuteScalarAsync().ConfigureAwait(false);
             if (result != null && bool.TryParse(result.ToString(), out var lockAcquired) && lockAcquired)
             {
-                _logger.LogInformation("Lock {@LockId} acquired", lockId);
+                _logger.LogTrace("Lock {@LockId} acquired", lockId);
                 return true;
             }
 
-            _logger.LogInformation("Lock {@LockId} rejected", lockId);
+            _logger.LogTrace("Lock {@LockId} rejected", lockId);
             return false;
         }
 
         private async Task ReleaseLock(long lockId)
         {
             var transactionLockCommand = $"SELECT pg_advisory_unlock({lockId})";
-            _logger.LogInformation("Releasing session lock for {@LockId}", lockId);
+            _logger.LogTrace("Releasing session lock for {@LockId}", lockId);
             var commandQuery = new NpgsqlCommand(transactionLockCommand, _connection);
             await commandQuery.ExecuteScalarAsync().ConfigureAwait(false); ;
         }

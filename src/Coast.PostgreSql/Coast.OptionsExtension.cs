@@ -44,7 +44,7 @@ namespace Coast.PostgreSql
             options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<ICoastDBInitializer, CoastDBInitializer>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IRepositoryFactory, RepositoryFactory>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IBranchBarrierRepository, BranchBarrierRepository>());
-
+            options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddSingleton<IDistributedLockProvider, PostgresDistributedLock>());
             return options;
         }
     }

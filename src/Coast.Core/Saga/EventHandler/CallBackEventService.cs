@@ -11,11 +11,9 @@
 
     public class CallBackEventService
     {
-        // Instantiate a Singleton of the Semaphore with a value of 1. This means that only 1 thread can be granted access at a time.
-        private static SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-
         private readonly IBarrierService _barrierService;
         private readonly ILogger<CallBackEventService> _logger;
+        private readonly IDistributedLockProvider _distributedLockProvider;
         private readonly IRepositoryFactory _repositoryFactory;
 
         public CallBackEventService(IServiceProvider serviceProvider)
@@ -23,15 +21,30 @@
             _repositoryFactory = serviceProvider.GetService<IRepositoryFactory>();
             _barrierService = serviceProvider.GetService<IBarrierService>();
             _logger = serviceProvider.GetService<ILogger<CallBackEventService>>();
+            _distributedLockProvider = serviceProvider.GetRequiredService<IDistributedLockProvider>();
         }
 
-        public async Task<List<SagaEvent>> ProcessEventAsync(SagaEvent @event)
+        public async Task<(bool reject, List<SagaEvent> sagaEvents)> ProcessEventAsync(SagaEvent @event)
         {
-
             using var connection = _repositoryFactory.OpenConnection();
+
+            using var session = _repositoryFactory.OpenSession(connection);
+            var sagaRepository = session.ConstructSagaRepository();
+            var saga = await sagaRepository.GetSagaByIdAsync(@event.CorrelationId);
+
+            if (saga.CurrentSagaStepGroup.Count > 1)
+            {
+                using var distributedLock = _distributedLockProvider.CreateLock();
+                if (!await distributedLock.TryAcquireLockAsync(saga.Id + saga.CurrentExecutionSequenceNumber))
+                {
+                    await Task.Delay(1000);
+                    return (true, null);
+                }
+            }
+
             var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
             var result = await barrier.Call<List<SagaEvent>>(connection, async (connection, trans) => await TransitAsync(@event, connection, trans));
-            return result;
+            return (false, result);
         }
 
         /// <summary>
@@ -46,37 +59,25 @@
         {
             _logger.LogDebug($"Event Name: {sagaEvent.EventName}, {sagaEvent.StepType} - Succeeded: {sagaEvent.Succeeded}");
 
-            await _semaphoreSlim.WaitAsync();
+            // should not close connection
+            var session = _repositoryFactory.OpenSession(conn);
 
-            try
+            // transction commit by Barrier service.
+            session.StartTransaction(transaction);
+            var sagaRepository = session.ConstructSagaRepository();
+            var eventLogRepository = session.ConstructEventLogRepository();
+
+            var saga = await sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
+            var nextStepEvents = saga.ProcessEvent(sagaEvent);
+
+            await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
+
+            if (nextStepEvents != null)
             {
-                // should not close connection
-                var session = _repositoryFactory.OpenSession(conn);
-
-                // transction commit by Barrier service.
-                session.StartTransaction(transaction);
-                var sagaRepository = session.ConstructSagaRepository();
-                var eventLogRepository = session.ConstructEventLogRepository();
-
-                var saga = await sagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken);
-                var nextStepEvents = saga.ProcessEvent(sagaEvent);
-
-                await sagaRepository.UpdateSagaAsync(saga, cancellationToken);
-
-                if (nextStepEvents != null)
-                {
-                    await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
-                }
-
-                return nextStepEvents;
-            }
-            finally
-            {
-                // When the task is ready, release the semaphore. It is vital to ALWAYS release the semaphore when we are ready, or else we will end up with a Semaphore that is forever locked.
-                // This is why it is important to do the Release within a try...finally clause; program execution may crash or take a different path, this way you are guaranteed execution
-                _semaphoreSlim.Release();
+                await eventLogRepository.SaveEventAsync(nextStepEvents, cancellationToken);
             }
 
+            return nextStepEvents;
         }
     }
 }

@@ -38,8 +38,9 @@ namespace Coast.RabbitMQ
                     var subsManager = s.GetRequiredService<IEventBusSubscriptionsManager>();
                     var processEvent = s.GetRequiredService<IProcessSagaEvent>();
                     var repositoryFactory = s.GetRequiredService<IRepositoryFactory>();
+                    var option = s.GetRequiredService<CoastOptions>();
 
-                    return new EventBusRabbitMQ(pc, log, s, subsManager, processEvent, repositoryFactory, subscriptionClientName, retryCount);
+                    return new EventBusRabbitMQ(pc, log, s, subsManager, processEvent, repositoryFactory, option, subscriptionClientName, retryCount);
                 });
             });
 

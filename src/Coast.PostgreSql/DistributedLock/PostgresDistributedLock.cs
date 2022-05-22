@@ -1,4 +1,4 @@
-﻿namespace Coast.PostgreSql.DistributedLock
+﻿namespace Coast.PostgreSql
 {
     using System;
     using System.Collections.Generic;
@@ -8,30 +8,20 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 
-    internal class PostgresDistributedLock : IDistributedLockProvider
+    public class PostgresDistributedLock : IDistributedLockProvider
     {
         private readonly string _connectionString;
         private readonly ILogger<PostgresDistributedLock> _logger;
 
-        PostgresDistributedLock(IOptions<DBOptions> options, ILogger<PostgresDistributedLock> logger)
+        public PostgresDistributedLock(IOptions<DBOptions> options, ILogger<PostgresDistributedLock> logger)
         {
             _connectionString = options.Value.ConnectionString;
             _logger = logger;
         }
 
-        public IDistributedLock CreateLock(string name)
+        public IDistributedLock CreateLock()
         {
-            if (name is null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
             return new DistributedLock(_connectionString, _logger);
-        }
-
-        public IDistributedLock CreateLock(long lockId)
-        {
-            throw new NotImplementedException();
         }
     }
 }

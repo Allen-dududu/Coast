@@ -65,8 +65,9 @@
 
         public TransactionStepTypeEnum StepType { get; set; }
 
-        public async Task Call(IDbConnection conn, Func<IDbConnection, IDbTransaction, Task> busiCall)
+        public async Task Call(Func<Task> busiCall)
         {
+            var conn = _repositoryFactory.OpenConnection();
             // https://zhuanlan.zhihu.com/p/388444465
             if (conn.State != ConnectionState.Open)
             {
@@ -102,7 +103,7 @@
 
                 if (affected1 != 0 && affected2 == 0)
                 {
-                    await busiCall(conn, trans);
+                    await busiCall();
                     await SaveCallBackEventLog(conn, trans);
                     trans.Commit();
                 }

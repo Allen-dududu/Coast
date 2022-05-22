@@ -11,13 +11,8 @@
     public interface IDistributedLockProvider
     {
         /// <summary>
-        /// Constructs an <see cref="IDistributedLock"/> instance with the given <paramref name="name"/>.
+        /// Constructs an <see cref="IDistributedLock"/>.
         /// </summary>
-        IDistributedLock CreateLock(string name);
-
-        /// <summary>
-        /// Constructs an <see cref="IDistributedLock"/> instance with the given <paramref lockId="lockId"/>.
-        /// </summary>
-        IDistributedLock CreateLock(long lockId);
+        IDistributedLock CreateLock();
     }
 }

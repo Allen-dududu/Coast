@@ -22,6 +22,12 @@
             _barrierService = barrierService;
         }
 
+        public async Task IdempotentProcessEvent(string eventName, SagaEvent @event)
+        {
+            var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
+            await barrier.Call(() => ProcessEvent(eventName,@event));
+        }
+
         /// <inheritdoc/>
         public async Task ProcessEvent(string eventName, SagaEvent @event)
         {
