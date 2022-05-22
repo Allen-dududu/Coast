@@ -1,4 +1,4 @@
-<h2>Coast</h2>
+# Coast 　　　　　　　　　　　　　　　　　　　　[中文](https://github.com/Allen-dududu/Coast/blob/main/README.zh-cn.md)
 
 [![Build And Automated Tests](https://github.com/Allen-dududu/Coast/actions/workflows/build.yaml/badge.svg)](https://github.com/Allen-dududu/Coast/actions/workflows/build.yaml)
 [![Nuget (with prereleases)](https://img.shields.io/nuget/vpre/Coast.Core)](https://nuget.org/packages/Coast.Core/)
