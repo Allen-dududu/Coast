@@ -60,10 +60,10 @@
                 var sagaRepository = session.ConstructSagaRepository();
                 var eventLogRepository = session.ConstructEventLogRepository();
 
-                await sagaRepository.SaveSagaAsync(saga, cancellationToken);
+                await sagaRepository.SaveSagaAsync(saga, cancellationToken).ConfigureAwait(false);
                 if (@sagaEvents != null)
                 {
-                    await eventLogRepository.SaveEventAsync(@sagaEvents, cancellationToken);
+                    await eventLogRepository.SaveEventAsync(@sagaEvents, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -71,7 +71,7 @@
             {
                 foreach (var @event in @sagaEvents)
                 {
-                    await _eventPublisher.PublishWithLogAsync(@event);
+                    await _eventPublisher.PublishWithLogAsync(@event).ConfigureAwait(false);
                 }
             }
         }

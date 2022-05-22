@@ -82,7 +82,7 @@
                                                                                                    CorrelationId,
                                                                                                    StepId,
                                                                                                    StepType,
-                                                                                                   trans);
+                                                                                                   trans).ConfigureAwait(false);
 
                 int affected2 = 0;
                 string error2 = string.Empty;
@@ -93,7 +93,7 @@
                                                                                              CorrelationId,
                                                                                              StepId,
                                                                                              TransactionStepTypeEnum.Commit,
-                                                                                             trans);
+                                                                                             trans).ConfigureAwait(false);
                 }
 
                 if (!string.IsNullOrWhiteSpace(error1) || !string.IsNullOrWhiteSpace(error2))
@@ -103,8 +103,8 @@
 
                 if (affected1 != 0 && affected2 == 0)
                 {
-                    await busiCall();
-                    await SaveCallBackEventLog(conn, trans);
+                    await busiCall().ConfigureAwait(false);
+                    await SaveCallBackEventLog(conn, trans).ConfigureAwait(false);
                     trans.Commit();
                 }
             }
@@ -133,7 +133,7 @@
                                                                                                    CorrelationId,
                                                                                                    StepId,
                                                                                                    StepType,
-                                                                                                   trans);
+                                                                                                   trans).ConfigureAwait(false);
 
                 int affected2 = 0;
                 string error2 = string.Empty;
@@ -144,7 +144,7 @@
                                                                                              CorrelationId,
                                                                                              StepId,
                                                                                              TransactionStepTypeEnum.Commit,
-                                                                                             trans);
+                                                                                             trans).ConfigureAwait(false);
                 }
 
                 if (!string.IsNullOrWhiteSpace(error1) || !string.IsNullOrWhiteSpace(error2))
@@ -154,8 +154,8 @@
 
                 if (affected1 != 0 && affected2 == 0)
                 {
-                    await SaveCallBackEventLog(conn, trans);
-                    var result = await busiCall(conn, trans);
+                    await SaveCallBackEventLog(conn, trans).ConfigureAwait(false);
+                    var result = await busiCall(conn, trans).ConfigureAwait(false);
                     trans.Commit();
 
                     return result;
@@ -178,7 +178,7 @@
             var session = _repositoryFactory.OpenSession(db);
             session.StartTransaction(tx);
             var eventLogRepository = session.ConstructEventLogRepository();
-            await eventLogRepository.SaveEventAsync(_sagaEvent);
+            await eventLogRepository.SaveEventAsync(_sagaEvent).ConfigureAwait(false);
         }
     }
 }
