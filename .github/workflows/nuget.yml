@@ -43,8 +43,21 @@ jobs:
           VERSION_STATIC: ${VERSION}
           TAG_COMMIT: false
 
-    # - name: Publish Coast.Core
-    #   uses: brandedoutcast/publish-nuget@v2.5.2
-    #   with:
-    #       PROJECT_FILE_PATH: ./src/Coast.Core/Coast.Core.csproj
-    #       NUGET_KEY: ${{env.NUGET_TOKEN}}
+    - name: Publish Coast.PostgreSql
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      with:
+          PACKAGE_NAME: Coast.PostgreSql
+          PROJECT_FILE_PATH: ./src/Coast.PostgreSql/Coast.PostgreSql.csproj
+          NUGET_KEY: ${{env.NUGET_TOKEN}}
+          VERSION_STATIC: ${VERSION}
+          TAG_COMMIT: false
+
+      name: Publish Coast.RabbitMQ
+      uses: brandedoutcast/publish-nuget@v2.5.2
+      with:
+          PACKAGE_NAME: Coast.RabbitMQ
+          PROJECT_FILE_PATH: ./src/Coast.RabbitMQ/Coast.RabbitMQ.csproj
+          NUGET_KEY: ${{env.NUGET_TOKEN}}
+          VERSION_STATIC: ${VERSION}
+          TAG_COMMIT: false
+
