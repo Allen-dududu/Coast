@@ -7,5 +7,6 @@
     {
         Commit = 0,
         Compensate = 1,
+        CallBack = 2,
     }
 }

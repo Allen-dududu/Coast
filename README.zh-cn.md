@@ -88,7 +88,7 @@ builder.Services.AddCosat(x =>
    ├─ Events // saga事件类目录。CreateOrderEvent，DeductionEvent...
 ```
 
-OrderManagement服务的Saga事件处理类：
+OrderManagement服务的Saga事件处理类处理CreateOrderEvent事件：
 ```c#
     public class CreateOrderEventHandler : ISagaHandler<CreateOrderEvent>
     {
@@ -104,34 +104,34 @@ OrderManagement服务的Saga事件处理类：
     }
 ```
 
-Payment服务的Saga事件处理类：
+Payment服务的Saga事件处理类处理DeductionEvent事件：
 ```c#
-    public class DeductionEventHandler : ISagaHandler<DeductionRequest>
+    public class DeductionEventHandler : ISagaHandler<DeductionEvent>
     {
-        public Task CancelAsync(DeductionRequest @event)
+        public Task CancelAsync(DeductionEvent @event)
         {
             // 对账号进行扣款补偿。
         }
 
-        public Task CommitAsync(DeductionRequest @event)
+        public Task CommitAsync(DeductionEvent @event)
         {
             // 对账号进行扣款
         }
     }
 ```
 
-Stock服务的Saga事件处理类：
+Stock服务的Saga事件处理类处理ReduceStockEvent事件：
 ```c#
-    public class ReduceStockEventHandler : ISagaHandler<ReduceStockRequest>
+    public class ReduceStockEventHandler : ISagaHandler<ReduceStockEvent>
     {
-        public Task CancelAsync(ReduceStockRequest @event)
+        public Task CancelAsync(ReduceStockEvent @event)
         {
             // 库存加1
             // 一般来说Saga的最后一步可以不用提供补偿操作，可以不用实现CancelAsync方法
             // 另外，如果之前的某个步骤不需要补偿，hasCompensation设置为false
         }
 
-        public Task CommitAsync(ReduceStockRequest @event)
+        public Task CommitAsync(ReduceStockEvent @event)
         {
             // 库存减1
         }

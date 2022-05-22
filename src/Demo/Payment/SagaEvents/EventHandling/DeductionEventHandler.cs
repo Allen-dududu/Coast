@@ -3,15 +3,15 @@ using Payment.SagaEvents.Events;
 
 namespace Payment.SagaEvents.EventHandling
 {
-    public class DeductionEventHandler : ISagaHandler<DeductionRequest>
+    public class DeductionEventHandler : ISagaHandler<DeductionEvent>
     {
-        public Task CancelAsync(DeductionRequest @event)
+        public Task CancelAsync(DeductionEvent @event)
         {
             Console.WriteLine($"Cancel Deduction {@event.Money}");
             return Task.CompletedTask;
         }
 
-        public Task CommitAsync(DeductionRequest @event)
+        public Task CommitAsync(DeductionEvent @event)
         {
             Console.WriteLine($"Commit Deduction {@event.Money}");
             return Task.CompletedTask;

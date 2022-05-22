@@ -1,9 +1,10 @@
-namespace Coast.RabbitMQ
+namespace Microsoft.Extensions.DependencyInjection
 {
     using System;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
+    using Coast.RabbitMQ;
     using global::RabbitMQ.Client;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;

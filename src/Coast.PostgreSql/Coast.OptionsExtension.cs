@@ -1,10 +1,11 @@
-namespace Coast.PostgreSql
+namespace Microsoft.Extensions.DependencyInjection
 {
     using System;
     using Coast.Core;
     using Coast.Core.DataLayer;
     using Coast.Core.Idempotent;
     using Coast.Core.MigrationManager;
+    using Coast.PostgreSql;
     using Coast.PostgreSql.Connection;
     using Coast.PostgreSql.Repository;
     using Microsoft.Extensions.DependencyInjection;

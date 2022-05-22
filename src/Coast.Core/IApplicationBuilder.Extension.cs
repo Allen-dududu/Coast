@@ -1,5 +1,6 @@
-﻿namespace Coast.Core
+﻿namespace Microsoft.Extensions.DependencyInjection
 {
+    using Coast.Core;
     using Coast.Core.EventBus;
     using Microsoft.AspNetCore.Builder;
 

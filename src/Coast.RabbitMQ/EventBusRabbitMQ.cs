@@ -298,6 +298,7 @@ namespace Coast.RabbitMQ
                 Succeeded = @event.Succeeded,
                 EventName = @event.CallBackEventName,
                 ErrorMessage = @event.ErrorMessage,
+                StepType = TransactionStepTypeEnum.CallBack,
             };
 
             await PublishWithLogAsync(@callBackEvent).ConfigureAwait(false);

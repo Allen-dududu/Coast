@@ -1,5 +1,6 @@
-using Coast.PostgreSql;
-using Coast.RabbitMQ;
+
+using OrderManagement.SagaEvents.EventHandling;
+using OrderManagement.SagaEvents.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +18,10 @@ builder.Services.AddCosat(x =>
     x.UsePostgreSql("Host=localhost;Port=5432;database=OrderManagement;User Id=postgres;Password=root;");
 });
 
+builder.Services.AddTransient<CreateOrderEventHandler>();
+
 var app = builder.Build();
+app.CoastSubscribe<CreateOrderEvent, CreateOrderEventHandler>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
