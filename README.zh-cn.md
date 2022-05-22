@@ -55,7 +55,7 @@ builder.Services.AddCosat(x =>
     {
         private readonly ISagaManager _sagaManager;
 
-        // 注入我们的ISagaManager服务
+        // 注入ISagaManager服务
         public OrderController(ISagaManager sagaManager)
         {
             _sagaManager = sagaManager;
@@ -110,7 +110,7 @@ Payment服务的Saga事件处理类处理DeductionEvent事件：
     {
         public Task CancelAsync(DeductionEvent @event)
         {
-            // 对账号进行扣款补偿。
+            // 对账号进行充值。
         }
 
         public Task CommitAsync(DeductionEvent @event)
@@ -161,3 +161,9 @@ saga.AddStep(new ReduceStockEvent() { Number = 1 }, hasCompensation: true, execu
 
 ### 幂等性
 Coast提供了默认的幂等判断，所以不需要用户编写判断逻辑。
+
+## TCC
+
+TCC 是一种补偿型事务，该模型要求应用的每个服务提供 Try、Confirm、Cancel 三个接口，它的核心思想是通过对资源的预留，尽早释放对资源的加锁，如果事务可以提交，则完成对预留资源的确认，如果事务要回滚，则释放预留的资源。
+
+Next Release ---------------
