@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stock", "Demo\Stock\Stock.c
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OrderManagement", "Demo\OrderManagement\OrderManagement.csproj", "{5400D530-2379-497D-A578-10B9D85F1A78}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Coast.PostgreSql.Test", "Coast.PostgreSql.Test\Coast.PostgreSql.Test.csproj", "{9542C511-AB99-487E-B631-AF8EA06A5096}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,12 @@ Global
 		{5400D530-2379-497D-A578-10B9D85F1A78}.Demo|Any CPU.Build.0 = Demo|Any CPU
 		{5400D530-2379-497D-A578-10B9D85F1A78}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5400D530-2379-497D-A578-10B9D85F1A78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9542C511-AB99-487E-B631-AF8EA06A5096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9542C511-AB99-487E-B631-AF8EA06A5096}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9542C511-AB99-487E-B631-AF8EA06A5096}.Demo|Any CPU.ActiveCfg = Debug|Any CPU
+		{9542C511-AB99-487E-B631-AF8EA06A5096}.Demo|Any CPU.Build.0 = Debug|Any CPU
+		{9542C511-AB99-487E-B631-AF8EA06A5096}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9542C511-AB99-487E-B631-AF8EA06A5096}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -92,6 +100,7 @@ Global
 		{2E167B4F-F360-4B96-AFB9-D4A5996805B8} = {356B8F2C-586E-4280-9F3D-AC2208CFF22E}
 		{08CC507A-CDA2-4FE7-8125-A3FDEC4001BD} = {396A9BE9-BCAF-4495-96D7-10EAC6B5E09C}
 		{5400D530-2379-497D-A578-10B9D85F1A78} = {396A9BE9-BCAF-4495-96D7-10EAC6B5E09C}
+		{9542C511-AB99-487E-B631-AF8EA06A5096} = {356B8F2C-586E-4280-9F3D-AC2208CFF22E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {007978E1-0F6A-4266-A3B8-31733C98F903}

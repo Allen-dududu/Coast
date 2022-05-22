@@ -41,6 +41,7 @@ namespace Coast.RabbitMQ
             IEventBusSubscriptionsManager subsManager,
             IProcessSagaEvent processSagaEvent,
             IRepositoryFactory repositoryFactory,
+            CoastOptions coastOptions,
             string queueName = null,
             int retryCount = 5)
         {
@@ -48,9 +49,8 @@ namespace Coast.RabbitMQ
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
-            var option = _serviceProvider.GetRequiredService<CoastOptions>();
-            _callBackEventName = option.DomainName + CoastConstant.CallBackEventSuffix;
-            _queueName = queueName ?? option.DomainName;
+            _callBackEventName = coastOptions.DomainName + CoastConstant.CallBackEventSuffix;
+            _queueName = queueName ?? coastOptions.DomainName;
             _consumerChannel = CreateConsumerChannel();
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
@@ -101,8 +101,10 @@ namespace Coast.RabbitMQ
                 Publish(@event);
                 await eventLogRepository.MarkEventAsPublishedAsync(@event.Id);
             }
-
-            Publish(@event);
+            else
+            {
+                Publish(@event);
+            }
         }
 
         private void Send(long eventId, string eventName, string message)
@@ -241,26 +243,31 @@ namespace Coast.RabbitMQ
             {
                 // process callback event.
                 var callBackEventService = new CallBackEventService(_serviceProvider);
-                var sagaEvents = await callBackEventService.ProcessEventAsync(@event);
-                if (sagaEvents != null)
+                var (reject, sagaEvents) = await callBackEventService.ProcessEventAsync(@event);
+                if (reject)
                 {
-                    foreach (var sagaEvent in sagaEvents)
+                    _consumerChannel.BasicReject(eventArgs.DeliveryTag, requeue: true);
+                }
+                else
+                {
+                    _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+
+                    if (sagaEvents != null)
                     {
-                        await PublishWithLogAsync(sagaEvent);
+                        foreach (var sagaEvent in sagaEvents)
+                        {
+                            await PublishWithLogAsync(sagaEvent);
+                        }
                     }
                 }
 
                 return;
             }
 
+            // Saga Event
             try
             {
-                if (message.ToLowerInvariant().Contains("throw-fake-exception"))
-                {
-                    throw new InvalidOperationException($"Fake exception requested: \"{message}\"");
-                }
-
-                await _processSagaEvent.ProcessEvent(eventName, @event);
+                await _processSagaEvent.IdempotentProcessEvent(eventName, @event);
                 @event.Succeeded = true;
             }
             catch (Exception ex)

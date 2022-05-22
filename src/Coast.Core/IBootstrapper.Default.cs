@@ -42,8 +42,12 @@
 
             try
             {
-                _processors = _serviceProvider.GetServices<IProcessingServer>();
-                await _serviceProvider.GetRequiredService<ICoastDBInitializer>().InitializeAsync(_options.Value.Schema, stoppingToken);
+                var distributedLockProvider = _serviceProvider.GetRequiredService<IDistributedLockProvider>();
+                using var distributedLock = distributedLockProvider.CreateLock();
+                await distributedLock.TryExecuteInDistributedLock(long.MaxValue, async () =>
+                {
+                    await _serviceProvider.GetRequiredService<ICoastDBInitializer>().InitializeAsync(_options.Value.Schema, stoppingToken);
+                });
             }
             catch (Exception e)
             {
@@ -54,6 +58,7 @@
             var eventBus = _serviceProvider.GetRequiredService<IEventBus>();
             eventBus.Subscribe<SagaCallBackEventHandler>(option.DomainName + CoastConstant.CallBackEventSuffix);
 
+            _processors = _serviceProvider.GetServices<IProcessingServer>();
             stoppingToken.Register(() =>
             {
                 _logger.LogDebug("### Coast background task is stopping.");

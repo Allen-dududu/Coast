@@ -11,7 +11,7 @@
 
         public IServiceCollection _Services { get; }
 
-        public CoastBuild AddMessageHandler<T>() where T : class, EventHandler
+        public CoastBuild AddMessageHandler<T>() where T : class, IEventHandler
         {
             _Services.AddTransient<T>();
             return this;

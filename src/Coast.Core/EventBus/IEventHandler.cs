@@ -12,31 +12,30 @@
 
     }
 
-    public interface ICommitEventHandler<T> where T : EventRequestBody
+    public interface ICommitEventHandler<in T> where T : EventRequestBody
     {
         public Task CommitAsync(T @event);
     }
 
-    public interface ICancelEventHandler<T> where T : EventRequestBody
+    public interface ICancelEventHandler<in T> where T : EventRequestBody
     {
         public Task CancelAsync(T @event);
     }
 
-    public interface ICommitEventHandler : EventHandler
+    public interface ICommitEventHandler : IEventHandler
     {
         public Task CommitAsync(string @event);
     }
 
-    public interface ICancelEventHandler : EventHandler
+    public interface ICancelEventHandler : IEventHandler
     {
         public Task CancelAsync(string @event);
     }
 
-    public interface EventHandler
+    public interface IEventHandler
     {
 
     }
-
     public interface IIntegrationEventHandler<IRequestBody> where IRequestBody : EventRequestBody
     {
 

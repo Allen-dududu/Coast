@@ -36,7 +36,7 @@
 
         public string? AbortingReason { get; set; }
 
-        private IEnumerable<SagaStep> CurrentSagaStepGroup => SagaSteps.Where(s => s.ExecutionSequenceNumber == CurrentExecutionSequenceNumber);
+        internal ICollection<SagaStep> CurrentSagaStepGroup => SagaSteps.Where(s => s.ExecutionSequenceNumber == CurrentExecutionSequenceNumber).ToList();
 
         private List<IGrouping<int, SagaStep>> SagaStepGroups => SagaSteps.GroupBy(i => i.ExecutionSequenceNumber).OrderBy(i => i.Key).ToList();
 
@@ -52,7 +52,7 @@
                 }
 
                 Interlocked.Increment(ref idx);
-                if (idx == SagaSteps.Count)
+                if (idx == SagaStepGroups.Count)
                 {
                     return null;
                 }
@@ -168,7 +168,7 @@
                 currentStep.State = currentStep.State switch
                 {
                     SagaStepStateEnum.Started => SagaStepStateEnum.Failed,
-                    SagaStepStateEnum.Compensating => SagaStepStateEnum.Failed,
+                    SagaStepStateEnum.Compensating => throw new Exception("Compensation operations are not allowed to fail"),
                     _ => throw new InvalidOperationException()
                 };
             }
