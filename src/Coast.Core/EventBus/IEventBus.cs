@@ -7,6 +7,8 @@
     {
         void Publish(IntegrationEvent @event, CancellationToken cancellationToken = default);
 
+        void Publish(long eventId, string eventName, string message);
+
         Task PublishWithLogAsync(IntegrationEvent @event, CancellationToken cancellationToken = default);
 
         void Subscribe<T, TH>()

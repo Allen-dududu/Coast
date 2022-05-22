@@ -49,13 +49,13 @@ FROM {_tableName}  where ""EventId"" = @EventId;";
             return await _connection.QuerySingleOrDefaultAsync<EventLogEntry>(QueryEventLogSql, new { EventId = eventId }).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync(long eventId, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync()
         {
             string QueryEventLogSql =
 $@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
-FROM {_tableName} where ""EventId"" = @EventId and ""State"" = {EventStateEnum.InProgress};";
+FROM {_tableName} where  ""State"" = @InProgress or ""State"" = @NotPublished;";
 
-            return await _connection.QueryAsync<EventLogEntry>(QueryEventLogSql, new { EventId = eventId }).ConfigureAwait(false);
+            return await _connection.QueryAsync<EventLogEntry>(QueryEventLogSql, new { InProgress = EventStateEnum.InProgress, NotPublished = EventStateEnum.NotPublished}).ConfigureAwait(false);
         }
 
         public async Task SaveEventAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)

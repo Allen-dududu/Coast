@@ -3,6 +3,7 @@
     using System;
     using Coast.Core;
     using Coast.Core.EventBus;
+    using Coast.Core.Processor;
     using Coast.Core.Util;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -38,7 +39,11 @@
                 serviceExtension(services);
             }
 
+            // Processors
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IProcessingServer, CoastProcessingServer>());
 
+            // Queue's message processor
+            services.TryAddSingleton<MessageNeedToRetryProcessor>();
 
             // Startup and Hosted
             services.AddSingleton<Bootstrapper>();

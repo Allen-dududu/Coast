@@ -7,7 +7,7 @@
 
     public interface IEventLogRepository
     {
-        Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync(long eventId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync();
 
         Task<EventLogEntry> RetrieveEventLogsAsync(long eventId, CancellationToken cancellationToken = default);
 
