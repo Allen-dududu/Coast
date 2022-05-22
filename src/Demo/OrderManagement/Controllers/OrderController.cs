@@ -19,17 +19,13 @@ namespace OrderManagement.Controllers
         public async Task<IActionResult> Create()
         {
             var saga = await _sagaManager.CreateAsync();
-
+            // Create Order
+            saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" }, hasCompensation: true);
             // Deduct $100
-            saga.AddStep(new DeductionRequest() { Money = 101 }, hasCompensation: false, executeOrder: 1);
+            saga.AddStep(new DeductionEvent() { Money = 101 }, hasCompensation: true);
             // Reduce a pair of shoes in stock
-            saga.AddStep(new ReduceStockRequest() { Number = 1 }, hasCompensation: true, executeOrder: 1);
-
-            saga.AddStep(new DeductionRequest() { Money = 102 }, hasCompensation: true, executeOrder: 2);
-            saga.AddStep(new ReduceStockRequest() { Number = 2 }, hasCompensation: true, executeOrder: 2);
-
+            saga.AddStep(new ReduceStockEvent() { Number = 1 }, hasCompensation: true);
             await _sagaManager.StartAsync(saga);
-
             return Ok();
         }
     }

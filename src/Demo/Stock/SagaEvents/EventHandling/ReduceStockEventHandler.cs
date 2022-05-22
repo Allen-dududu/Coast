@@ -5,11 +5,8 @@ namespace Stock.SagaEvents.EventHandling
 {
     public class ReduceStockEventHandler : ISagaHandler<ReduceStockRequest>
     {
-        private readonly IBarrierService barrierService;
-
-        public ReduceStockEventHandler(IBarrierService barrierService)
+        public ReduceStockEventHandler()
         {
-            this.barrierService = barrierService;
         }
         public Task CancelAsync(ReduceStockRequest @event)
         {

@@ -13,7 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCosat(x =>
 {
     x.DomainName = "OrderManagement";
-    x.UseRabbitMQ("localhost", "OrderManagement", 5);
+    x.UseRabbitMQ("localhost");
     x.UsePostgreSql("Host=localhost;Port=5432;database=OrderManagement;User Id=postgres;Password=root;");
 });
 

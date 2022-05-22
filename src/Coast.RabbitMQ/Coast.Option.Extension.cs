@@ -11,7 +11,7 @@ namespace Coast.RabbitMQ
 
     public static class CoastOptionsExtension
     {
-        public static CoastOptions UseRabbitMQ(this CoastOptions options, string hostName, string subscriptionClientName, int retryCount)
+        public static CoastOptions UseRabbitMQ(this CoastOptions options, string hostName, string? subscriptionClientName = null, int retryCount = 5)
         {
             return options.UseRabbitMQ(new ConnectionFactory()
             {

@@ -85,15 +85,15 @@
 
         public List<SagaStep> SagaSteps { get; set; } = new List<SagaStep>();
 
-        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = default, int executionSequenceNumber = int.MaxValue)
         {
-            SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executeOrder));
+            SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
         }
 
-        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = default, int executeOrder = int.MaxValue)
+        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = default, int executionSequenceNumber = int.MaxValue)
         {
-            SagaSteps.Add(new SagaStep(Id, stepEventName, sagaRequest, hasCompensation, executeOrder));
+            SagaSteps.Add(new SagaStep(Id, stepEventName, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
         }
 

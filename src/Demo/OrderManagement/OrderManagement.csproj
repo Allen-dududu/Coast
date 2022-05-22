@@ -17,8 +17,4 @@
     <ProjectReference Include="..\..\Coast.RabbitMQ\Coast.RabbitMQ.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="SagaEvents\EventHandling\" />
-  </ItemGroup>
-
 </Project>

@@ -2,7 +2,7 @@
 
 namespace OrderManagement.SagaEvents.Events
 {
-    public class DeductionRequest : EventRequestBody
+    public class DeductionEvent : EventRequestBody
     {
         public long Money { get; set; }
     }
