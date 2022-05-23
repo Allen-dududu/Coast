@@ -50,6 +50,7 @@
             foreach (var message in messages)
             {
                 _messageSender.Publish(message.EventId, eventName: message.EventTypeName, message: message.Content);
+                await eventLog.MarkEventAsPublishedAsync(message.EventId);
                 await context.WaitAsync(_delay);
             }
         }
