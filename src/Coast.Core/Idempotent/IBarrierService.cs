@@ -5,6 +5,5 @@ namespace Coast.Core
     public interface IBarrierService
     {
         BranchBarrier CreateBranchBarrier(SagaEvent @event, ILogger? logger = null);
-
     }
 }

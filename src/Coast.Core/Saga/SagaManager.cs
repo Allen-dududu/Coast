@@ -4,19 +4,18 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
     using Microsoft.Extensions.Logging;
 
     public class SagaManager : ISagaManager
     {
-        private readonly IRepositoryFactory _repositoryFactory;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IEventBus _eventPublisher;
         private readonly ILogger<SagaManager> _logger;
 
-        public SagaManager(IRepositoryFactory repositoryFactory, IEventBus eventPublisher, ILogger<SagaManager> logger)
+        public SagaManager(IUnitOfWork repositoryFactory, IEventBus eventPublisher, ILogger<SagaManager> logger)
         {
-            _repositoryFactory = repositoryFactory;
+            _unitOfWork = repositoryFactory;
             _eventPublisher = eventPublisher;
             _logger = logger;
         }
@@ -52,20 +51,13 @@
             }
 
             var @sagaEvents = saga.Start();
-
-            using (var session = _repositoryFactory.OpenSession())
+            await _unitOfWork.SagaRepository.SaveSagaAsync(saga, cancellationToken).ConfigureAwait(false);
+            if (@sagaEvents != null)
             {
-                session.StartTransaction();
-
-                var sagaRepository = session.ConstructSagaRepository();
-                var eventLogRepository = session.ConstructEventLogRepository();
-
-                await sagaRepository.SaveSagaAsync(saga, cancellationToken).ConfigureAwait(false);
-                if (@sagaEvents != null)
-                {
-                    await eventLogRepository.SaveEventAsync(@sagaEvents, cancellationToken).ConfigureAwait(false);
-                }
+                await _unitOfWork.EventLogRepository.SaveEventAsync(@sagaEvents, cancellationToken).ConfigureAwait(false);
             }
+
+            _unitOfWork.Commit();
 
             if (@sagaEvents != null)
             {

@@ -3,7 +3,6 @@ namespace Coast.PostgreSql
     using System.Threading;
     using System.Threading.Tasks;
     using Coast.Core;
-    using Coast.Core.DataLayer;
     using Coast.Core.MigrationManager;
     using Dapper;
 
@@ -12,15 +11,15 @@ namespace Coast.PostgreSql
     /// </summary>
     public class CoastDBInitializer : ICoastDBInitializer
     {
-        private readonly IRepositoryFactory _connectionProvider;
+        private readonly IUnitOfWork _unitOfWork;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CoastDBInitializer"/> class.
         /// </summary>
         /// <param name="_options">Db configuration.</param>
-        public CoastDBInitializer(IRepositoryFactory connectionProvider)
+        public CoastDBInitializer(IUnitOfWork unitOfWork)
         {
-            _connectionProvider = connectionProvider;
+            _unitOfWork = unitOfWork;
         }
 
         /// <inheritdoc/>
@@ -32,7 +31,7 @@ namespace Coast.PostgreSql
             }
 
             var sql = CreateTableSql(schema);
-            using var connection = _connectionProvider.OpenConnection();
+            using var connection = _unitOfWork.Connection;
             await connection.ExecuteAsync(sql).ConfigureAwait(false);
         }
 

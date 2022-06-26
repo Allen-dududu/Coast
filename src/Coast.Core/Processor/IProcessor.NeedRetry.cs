@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
     using Coast.Core.EventBus.EventLog;
     using Microsoft.Extensions.DependencyInjection;
@@ -34,10 +33,9 @@
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var repositoryFactory = context.Provider.GetRequiredService<IRepositoryFactory>();
-            var session = repositoryFactory.OpenSession();
-            await ProcessPublishedAsync(session.ConstructEventLogRepository(), context);
-
+            using var unitofWork = context.Provider.GetRequiredService<IUnitOfWork>();
+            await ProcessPublishedAsync(unitofWork.EventLogRepository, context);
+            unitofWork.Commit();
             await context.WaitAsync(_waitingInterval);
         }
 
