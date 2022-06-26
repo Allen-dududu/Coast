@@ -17,6 +17,7 @@
 
         public CallBackEventService(IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
             _barrierService = serviceProvider.GetService<IBarrierService>();
             _logger = serviceProvider.GetService<ILogger<CallBackEventService>>();
             _distributedLockProvider = serviceProvider.GetRequiredService<IDistributedLockProvider>();
