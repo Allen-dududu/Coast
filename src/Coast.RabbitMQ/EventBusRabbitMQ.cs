@@ -7,7 +7,6 @@ namespace Coast.RabbitMQ
     using System.Threading;
     using System.Threading.Tasks;
     using Coast.Core;
-    using Coast.Core.DataLayer;
     using Coast.Core.EventBus;
     using Coast.Core.Util;
     using global::RabbitMQ.Client;
@@ -28,7 +27,7 @@ namespace Coast.RabbitMQ
         private readonly IServiceProvider _serviceProvider;
         private readonly int _retryCount;
         private readonly IProcessSagaEvent _processSagaEvent;
-        private readonly IRepositoryFactory _repositoryFactory;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly string _callBackEventName;
 
         private IModel _consumerChannel;
@@ -40,7 +39,7 @@ namespace Coast.RabbitMQ
             IServiceProvider serviceProvider,
             IEventBusSubscriptionsManager subsManager,
             IProcessSagaEvent processSagaEvent,
-            IRepositoryFactory repositoryFactory,
+            IUnitOfWork unitOfWork,
             CoastOptions coastOptions,
             string queueName = null,
             int retryCount = 5)
@@ -55,7 +54,7 @@ namespace Coast.RabbitMQ
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
             _processSagaEvent = processSagaEvent;
-            _repositoryFactory = repositoryFactory;
+            _unitOfWork = unitOfWork;
         }
 
         private void SubsManager_OnEventRemoved(object sender, string eventName)
@@ -93,13 +92,14 @@ namespace Coast.RabbitMQ
 
         public async Task PublishWithLogAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)
         {
-            using var session = _repositoryFactory.OpenSession();
-            var eventLogRepository = session.ConstructEventLogRepository();
-            if (null != await eventLogRepository.RetrieveEventLogsAsync(@event.Id).ConfigureAwait(false))
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (null != await _unitOfWork.EventLogRepository.RetrieveEventLogsAsync(@event.Id).ConfigureAwait(false))
             {
-                await eventLogRepository.MarkEventAsInProgressAsync(@event.Id).ConfigureAwait(false);
+                await _unitOfWork.EventLogRepository.MarkEventAsInProgressAsync(@event.Id).ConfigureAwait(false);
                 Publish(@event);
-                await eventLogRepository.MarkEventAsPublishedAsync(@event.Id).ConfigureAwait(false);
+                await _unitOfWork.EventLogRepository.MarkEventAsPublishedAsync(@event.Id).ConfigureAwait(false);
+                _unitOfWork.Commit();
             }
             else
             {
@@ -267,7 +267,7 @@ namespace Coast.RabbitMQ
             // Saga Event
             try
             {
-                await _processSagaEvent.IdempotentProcessEvent(eventName, @event).ConfigureAwait(false);
+                await _processSagaEvent.ProcessEvent(eventName, @event).ConfigureAwait(false);
                 @event.Succeeded = true;
             }
             catch (Exception ex)

@@ -1,21 +1,21 @@
 ﻿namespace Coast.Core
 {
     using System;
-    using Coast.Core.DataLayer;
-    using Coast.Core.Idempotent;
+    using System.Data;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
 
     public class DefaultBarrierService : IBarrierService
     {
         private readonly ILogger<DefaultBarrierService> _logger;
         private readonly IBranchBarrierRepository _branchBarrierRepository;
-        private readonly IRepositoryFactory _repositoryFactor;
+        private readonly Func<IDbTransaction, IEventLogRepository> _eventLogRepositoryFactory;
 
-        public DefaultBarrierService(ILogger<DefaultBarrierService> logger, IBranchBarrierRepository branchBarrierRepository, IRepositoryFactory repositoryFactor)
+        public DefaultBarrierService(ILogger<DefaultBarrierService> logger, IBranchBarrierRepository branchBarrierRepository, Func<IDbTransaction, IEventLogRepository> eventLogRepositoryFactory)
         {
             _logger = logger;
             _branchBarrierRepository = branchBarrierRepository;
-            _repositoryFactor = repositoryFactor;
+            _eventLogRepositoryFactory = eventLogRepositoryFactory;
         }
 
         public BranchBarrier CreateBranchBarrier(SagaEvent @event, ILogger logger = null)
@@ -30,7 +30,7 @@
                 logger = _logger;
             }
 
-            var bb = new BranchBarrier(@event, _branchBarrierRepository, logger, _repositoryFactor);
+            var bb = new BranchBarrier(@event, _branchBarrierRepository, logger, _eventLogRepositoryFactory);
             return bb;
         }
     }

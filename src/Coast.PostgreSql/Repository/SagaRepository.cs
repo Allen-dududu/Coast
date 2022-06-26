@@ -8,20 +8,16 @@
     using Coast.Core;
     using Dapper;
 
-    public class SagaRepository : ISagaRepository
+    internal class SagaRepository : RepositoryBase, ISagaRepository
     {
-        private IDbConnection _connection;
-        private IDbTransaction _transaction;
         private readonly string _sagaTableName;
         private readonly string _sagaStepTableName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SagaRepository"/> class.
         /// </summary>
-        public SagaRepository(string schemaName, IDbConnection connection, IDbTransaction transaction = null)
+        public SagaRepository(string schemaName, IDbTransaction transaction) : base(transaction)
         {
-            _connection = connection;
-            _transaction = transaction;
             _sagaTableName = $"\"{schemaName}\".\"Saga\"";
             _sagaStepTableName = $"\"{schemaName}\".\"SagaStep\"";
         }
@@ -40,14 +36,14 @@ $@"INSERT INTO {_sagaStepTableName}
 (""Id"", ""CorrelationId"", ""EventName"", ""HasCompensation"", ""State"", ""RequestBody"", ""CreationTime"", ""FailedReason"", ""ExecutionSequenceNumber"") 
 VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody, @CreationTime,@FailedReason, @ExecutionSequenceNumber); ";
 
-            await _connection.ExecuteAsync(
+            await Connection.ExecuteAsync(
                     InsertSagaSql,
                     new { Id = saga.Id, State = SagaStateEnum.Started, CreationTime = DateTime.UtcNow, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber },
-                    transaction: _transaction).ConfigureAwait(false);
+                    transaction: Transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)
             {
-                await _connection.ExecuteAsync(
+                await Connection.ExecuteAsync(
                     InsertSagaStepSql,
                     new
                     {
@@ -61,7 +57,7 @@ VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody,
                         FailedReason = step.FailedReason,
                         ExecutionSequenceNumber = step.ExecutionSequenceNumber,
                     },
-                    transaction: _transaction).ConfigureAwait(false);
+                    transaction: Transaction).ConfigureAwait(false);
             }
         }
 
@@ -76,7 +72,7 @@ VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody,
 
             foreach (var step in saga.SagaSteps)
             {
-                await _connection.ExecuteAsync(
+                await Connection.ExecuteAsync(
                     InsertSagaStepSql,
                     new
                     {
@@ -90,7 +86,7 @@ VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody,
                         FailedReason = step.FailedReason,
                         ExecutionSequenceNumber = step.ExecutionSequenceNumber,
                     },
-                    transaction: _transaction).ConfigureAwait(false);
+                    transaction: Transaction).ConfigureAwait(false);
             }
         }
 
@@ -107,11 +103,11 @@ FROM {_sagaTableName} where ""Id"" = @Id;";
 $@"SELECT ""Id"", ""CorrelationId"", ""EventName"",""HasCompensation"", ""State"", ""RequestBody"", ""FailedReason"", ""CreationTime"" ,""ExecutionSequenceNumber"" 
 FROM  {_sagaStepTableName}  where ""CorrelationId"" = @CorrelationId;";
 
-            var saga = await _connection.QuerySingleAsync<Saga>(
+            var saga = await Connection.QuerySingleAsync<Saga>(
                     QuerySagaSql,
                     new { Id = sagaId }).ConfigureAwait(false);
 
-            var sagaSteps = await _connection.QueryAsync<SagaStep>(
+            var sagaSteps = await Connection .QueryAsync<SagaStep>(
                     QuerySagaStepSql,
                     new { CorrelationId = sagaId }).ConfigureAwait(false);
 
@@ -135,14 +131,14 @@ $@"UPDATE {_sagaStepTableName}
 SET ""State"" = @State, ""FailedReason"" = @FailedReason 
 WHERE ""Id"" = @Id";
 
-            await _connection.ExecuteAsync(
+            await Connection.ExecuteAsync(
                     UpdateSagaSql,
                     new { Id = saga.Id, State = saga.State, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber },
-                    transaction: _transaction).ConfigureAwait(false);
+                    transaction: Transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)
             {
-                await _connection.ExecuteAsync(
+                await Connection.ExecuteAsync(
                     UpdateSagaStepSql,
                     new
                     {
@@ -150,7 +146,7 @@ WHERE ""Id"" = @Id";
                         State = step.State,
                         FailedReason = step.FailedReason,
                     },
-                    transaction: _transaction).ConfigureAwait(false);
+                    transaction: Transaction).ConfigureAwait(false);
             }
         }
     }

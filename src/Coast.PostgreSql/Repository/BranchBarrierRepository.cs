@@ -4,7 +4,6 @@
     using System.Data;
     using System.Threading.Tasks;
     using Coast.Core;
-    using Coast.Core.Idempotent;
     using Dapper;
     using Microsoft.Extensions.Options;
 
@@ -17,7 +16,7 @@
             _tableName = $"\"{options.Value.Schema}\".\"Barrier\"";
         }
 
-        public async Task<(int affected, string error)> InsertBarrierAsync(IDbConnection conn, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType, IDbTransaction trans = null)
+        public async Task<(int affected, string error)> InsertBarrierAsync(IDbTransaction trans, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType)
         {
             var InsertIgnoreSql =
  $@"INSERT INTO {_tableName} (""Id"", ""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""CreationTime"")
@@ -29,7 +28,7 @@ DO NOTHING;";
             string error = string.Empty;
             try
             {
-                affected = await conn.ExecuteAsync(
+                affected = await trans.Connection.ExecuteAsync(
                     InsertIgnoreSql,
                     new { id = SnowflakeId.Default().NextId(), TransactionType = transactionType, CorrelationId = correlationId, StepId = stepId, StepType = stepType, CreationTime = DateTime.UtcNow },
                     transaction: trans).ConfigureAwait(false);

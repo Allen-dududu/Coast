@@ -1,15 +1,15 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     using System;
+    using System.Data;
     using Coast.Core;
-    using Coast.Core.DataLayer;
-    using Coast.Core.Idempotent;
     using Coast.Core.MigrationManager;
     using Coast.PostgreSql;
     using Coast.PostgreSql.Connection;
     using Coast.PostgreSql.Repository;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// CoastOptions Extensions for postgreSql.
@@ -43,9 +43,19 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<ICoastDBInitializer, CoastDBInitializer>());
-            options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IRepositoryFactory, RepositoryFactory>());
+            options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IUnitOfWork, UnitOfWork>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IBranchBarrierRepository, BranchBarrierRepository>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddSingleton<IDistributedLockProvider, PostgresDistributedLock>());
+
+            options.RegisterExtension(ServiceCollection => {
+                ServiceCollection.TryAddTransient<Func<IDbTransaction, IEventLogRepository>>(
+                sp => (IDbTransaction transaction) =>
+                {
+                    var schemaName = sp.GetService<IOptions<DBOptions>>().Value.Schema;
+                    return new EventLogRepository(schemaName, transaction);
+                });
+            });
+
             return options;
         }
     }

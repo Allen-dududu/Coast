@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Text;
     using Coast.Core;
-    using Coast.Core.DataLayer;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
 

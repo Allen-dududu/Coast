@@ -1,9 +1,11 @@
-﻿namespace Coast.Core.EventBus.EventLog
+﻿namespace Coast.Core
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core.EventBus;
+    using Coast.Core.EventBus.EventLog;
 
     public interface IEventLogRepository
     {

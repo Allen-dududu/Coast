@@ -1,27 +1,24 @@
-﻿namespace Coast.PostgreSql.Service
+﻿namespace Coast.PostgreSql.Repository
 {
     using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
+    using Coast.Core;
     using Coast.Core.EventBus;
     using Coast.Core.EventBus.EventLog;
     using Dapper;
 
-    public class EventLogRepository : IEventLogRepository
+    internal class EventLogRepository : RepositoryBase, IEventLogRepository
     {
-        private readonly IDbConnection _connection;
-        private readonly IDbTransaction _transaction;
         private readonly string _tableName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventLogRepository"/> class.
         /// </summary>
-        public EventLogRepository(string schemaName, IDbConnection connection, IDbTransaction transaction = null)
+        public EventLogRepository(string schemaName, IDbTransaction transaction) : base(transaction)
         {
-            _connection = connection;
-            _transaction = transaction;
             _tableName = $"\"{schemaName}\".\"EventLog\"";
         }
 
@@ -46,7 +43,7 @@
 $@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
 FROM {_tableName}  where ""EventId"" = @EventId;";
 
-            return await _connection.QuerySingleOrDefaultAsync<EventLogEntry>(QueryEventLogSql, new { EventId = eventId }).ConfigureAwait(false);
+            return await Connection.QuerySingleOrDefaultAsync<EventLogEntry>(QueryEventLogSql, new { EventId = eventId }).ConfigureAwait(false);
         }
 
         public async Task<IEnumerable<EventLogEntry>> RetrieveEventLogsPendingToPublishAsync()
@@ -55,7 +52,7 @@ FROM {_tableName}  where ""EventId"" = @EventId;";
 $@"SELECT ""EventId"", ""CreationTime"", ""EventTypeName"", ""Content"", ""State"", ""TimesSent"" 
 FROM {_tableName} where  ""State"" = @InProgress or ""State"" = @NotPublished;";
 
-            return await _connection.QueryAsync<EventLogEntry>(QueryEventLogSql, new { InProgress = EventStateEnum.InProgress, NotPublished = EventStateEnum.NotPublished}).ConfigureAwait(false);
+            return await Connection.QueryAsync<EventLogEntry>(QueryEventLogSql, new { InProgress = EventStateEnum.InProgress, NotPublished = EventStateEnum.NotPublished}).ConfigureAwait(false);
         }
 
         public async Task SaveEventAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)
@@ -69,7 +66,7 @@ VALUES (@EventId, @CreationTime, @EventTypeName, @Content, @State, @TimesSent); 
 
             var eventLogEntry = new EventLogEntry(@event);
 
-            await _connection.ExecuteAsync(
+            await Connection.ExecuteAsync(
                     InsertEventLogSql,
                     new
                     {
@@ -80,7 +77,7 @@ VALUES (@EventId, @CreationTime, @EventTypeName, @Content, @State, @TimesSent); 
                         State = eventLogEntry.State,
                         TimesSent = eventLogEntry.TimesSent
                     },
-                    transaction: _transaction).ConfigureAwait(false);
+                    transaction: Transaction).ConfigureAwait(false);
         }
 
         public async Task SaveEventAsync(IEnumerable<IntegrationEvent> @events, CancellationToken cancellationToken = default)
@@ -104,7 +101,7 @@ $@"UPDATE {_tableName}
 SET ""State"" = @State, ""TimesSent"" = @TimesSent 
 WHERE ""EventId"" = @EventId";
 
-            var eventLogEntry = await _connection.QuerySingleAsync<EventLogEntry>(
+            var eventLogEntry = await Connection.QuerySingleAsync<EventLogEntry>(
                 QueryEventLogSql,
                 new
                 {
@@ -118,7 +115,7 @@ WHERE ""EventId"" = @EventId";
                 eventLogEntry.TimesSent++;
             }
 
-            await _connection.ExecuteAsync(
+            await Connection.ExecuteAsync(
                 UpdateEventLogSql,
                 new
                 {
