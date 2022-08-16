@@ -127,7 +127,6 @@ Stockservice handles the ReduceStockEvent event：
         public Task CancelAsync(ReduceStockEvent @event)
         {
             // Inventory plus 1
-            // Generally speaking, the last step of Saga could not provide compensation operation, could not implement CancelAsync method
             // In addition, if a previous step does not has compensation, hasCompensation should set to false
         }
 
