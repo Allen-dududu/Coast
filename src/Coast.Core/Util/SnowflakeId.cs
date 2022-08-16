@@ -1,6 +1,7 @@
 ﻿namespace Coast.Core
 {
     using System;
+    using System.Linq;
     using System.Net.NetworkInformation;
     using System.Threading;
     using Coast.Core.Util;
@@ -158,20 +159,21 @@
         }
 
         /// <summary>
-        /// use lowest 10 bit of available MAC as workerId.
+        /// use lowest 10 bit of available MAC as workerId
         /// </summary>
         /// <returns>workerId</returns>
         private static long GenerateWorkerIdBaseOnMac()
         {
             NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
 
-            if (nics == null || nics.Length < 1)
+            // exclude virtual and Loopback
+            var firstUpInterface = nics.OrderByDescending(x => x.Speed).FirstOrDefault(x => !x.Description.Contains("Virtual") && x.NetworkInterfaceType != NetworkInterfaceType.Loopback && x.OperationalStatus == OperationalStatus.Up);
+            if (firstUpInterface == null)
             {
                 throw new Exception("no available mac found");
             }
 
-            var adapter = nics[0];
-            PhysicalAddress address = adapter.GetPhysicalAddress();
+            PhysicalAddress address = firstUpInterface.GetPhysicalAddress();
             byte[] mac = address.GetAddressBytes();
 
             return ((mac[4] & 0B11) << 8) | (mac[5] & 0xFF);
