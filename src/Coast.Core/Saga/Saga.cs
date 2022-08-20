@@ -32,6 +32,8 @@
 
         public DateTime CreationTime { get; private set; }
 
+        public DateTime FinishedTime { get; private set; }
+
         public int CurrentExecutionSequenceNumber { get; private set; }
 
         public string? AbortingReason { get; set; }
@@ -250,6 +252,7 @@
             if (SagaSteps.All(s => s.State == SagaStepStateEnum.Succeeded))
             {
                 State = SagaStateEnum.Completed;
+                FinishedTime = DateTime.UtcNow;
             }
             else if (SagaSteps.All(s =>
                         s.State == SagaStepStateEnum.Started ||

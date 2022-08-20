@@ -30,7 +30,7 @@
             string InsertSagaSql =
 $@"INSERT INTO {_sagaTableName} 
 (""Id"", ""State"", ""CreationTime"", ""CurrentExecutionSequenceNumber"") 
-VALUES (@Id, @State, @CreationTime, @CurrentExecutionSequenceNumber ); ";
+VALUES (@Id, @State, @CreationTime, @CurrentExecutionSequenceNumber); ";
             string InsertSagaStepSql =
 $@"INSERT INTO {_sagaStepTableName}
 (""Id"", ""CorrelationId"", ""EventName"", ""HasCompensation"", ""State"", ""RequestBody"", ""CreationTime"", ""FailedReason"", ""ExecutionSequenceNumber"") 
@@ -123,7 +123,7 @@ FROM  {_sagaStepTableName}  where ""CorrelationId"" = @CorrelationId;";
 
             string UpdateSagaSql =
 $@"UPDATE {_sagaTableName}
-SET ""State"" = @State, ""CurrentExecutionSequenceNumber"" = @CurrentExecutionSequenceNumber 
+SET ""State"" = @State, ""CurrentExecutionSequenceNumber"" = @CurrentExecutionSequenceNumber , ""FinishedTime"" = @FinishedTime 
 WHERE ""Id"" = @Id";
 
             string UpdateSagaStepSql =
@@ -133,7 +133,7 @@ WHERE ""Id"" = @Id";
 
             await Connection.ExecuteAsync(
                     UpdateSagaSql,
-                    new { Id = saga.Id, State = saga.State, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber },
+                    new { Id = saga.Id, State = saga.State, CurrentExecutionSequenceNumber = saga.CurrentExecutionSequenceNumber, FinishedTime = saga.FinishedTime },
                     transaction: Transaction).ConfigureAwait(false);
 
             foreach (var step in saga.SagaSteps)

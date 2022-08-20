@@ -32,7 +32,7 @@ namespace Coast.PostgreSql
 
             var sql = CreateTableSql(schema);
             using var connection = _unitOfWork.Connection;
-            await connection.ExecuteAsync(sql).ConfigureAwait(false);
+            var r = await connection.ExecuteAsync(sql).ConfigureAwait(false);
         }
 
         private string CreateTableSql(string schema)
@@ -48,14 +48,16 @@ CREATE TABLE IF NOT EXISTS ""{schema}"".""Barrier""(
 	""StepType"" int NULL,
     ""CreationTime"" TIMESTAMP NULL
 );
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ""Barrier_Id"" 
+CREATE UNIQUE INDEX IF NOT EXISTS ""Barrier_Id"" 
 ON ""{schema}"".""Barrier"" (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"");
 
 CREATE TABLE IF NOT EXISTS ""{schema}"".""Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
     ""State"" int NOT NULL,
     ""CurrentExecutionSequenceNumber"" bigint NULL,
-    ""CreationTime"" TIMESTAMP NULL
+    ""CreationTime"" TIMESTAMP NULL,
+    ""FinishedTime"" TIMESTAMP NULL
+
 ) ;
 
 CREATE TABLE IF NOT EXISTS ""{schema}"".""SagaStep""( 
