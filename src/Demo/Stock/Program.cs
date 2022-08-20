@@ -17,7 +17,7 @@ builder.Services.AddCosat(x =>
 {
     x.DomainName = "Stock";
     x.UseRabbitMQ("localhost", "Stock", 5);
-    x.UsePostgreSql("Host=localhost;Port=5432;database=Stock;User Id=postgres;Password=root;"
+    x.UsePostgreSql("Host=localhost;Port=5432;database=Stock;User Id=coast;Password=coast;"
 );
 });
 builder.Services.AddTransient<ReduceStockEventHandler>();

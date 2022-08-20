@@ -93,13 +93,14 @@ namespace Coast.RabbitMQ
         public async Task PublishWithLogAsync(IntegrationEvent @event, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            using var uow = _serviceProvider.GetService<IUnitOfWork>();
 
-            if (null != await _unitOfWork.EventLogRepository.RetrieveEventLogsAsync(@event.Id).ConfigureAwait(false))
+            if (null != await uow.EventLogRepository.RetrieveEventLogsAsync(@event.Id).ConfigureAwait(false))
             {
-                await _unitOfWork.EventLogRepository.MarkEventAsInProgressAsync(@event.Id).ConfigureAwait(false);
+                await uow.EventLogRepository.MarkEventAsInProgressAsync(@event.Id).ConfigureAwait(false);
                 Publish(@event);
-                await _unitOfWork.EventLogRepository.MarkEventAsPublishedAsync(@event.Id).ConfigureAwait(false);
-                _unitOfWork.Commit();
+                await uow.EventLogRepository.MarkEventAsPublishedAsync(@event.Id).ConfigureAwait(false);
+                uow.Commit();
             }
             else
             {

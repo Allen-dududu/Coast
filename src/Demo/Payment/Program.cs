@@ -13,7 +13,7 @@ builder.Services.AddCosat(x =>
 {
     x.DomainName = "Payment";
     x.UseRabbitMQ("localhost", "Payment", 5);
-    x.UsePostgreSql("Host=localhost;Port=5432;database=Payment;User Id=postgres;Password=root;"
+    x.UsePostgreSql("Host=localhost;Port=5432;database=Payment;User Id=coast;Password=coast;"
 );
 });
 builder.Services.AddTransient<DeductionEventHandler>();

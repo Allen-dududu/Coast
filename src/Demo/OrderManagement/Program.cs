@@ -15,7 +15,7 @@ builder.Services.AddCosat(x =>
 {
     x.DomainName = "OrderManagement";
     x.UseRabbitMQ("localhost");
-    x.UsePostgreSql("Host=localhost;Port=5432;database=OrderManagement;User Id=postgres;Password=root;");
+    x.UsePostgreSql("Host=localhost;Port=5432;database=OrderManagement;User Id=coast;Password=coast;");
 });
 
 builder.Services.AddTransient<CreateOrderEventHandler>();
