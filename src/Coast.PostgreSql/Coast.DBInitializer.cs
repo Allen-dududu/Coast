@@ -33,6 +33,7 @@ namespace Coast.PostgreSql
             var sql = CreateTableSql(schema);
             using var connection = _unitOfWork.Connection;
             var r = await connection.ExecuteAsync(sql).ConfigureAwait(false);
+            _unitOfWork.Commit();
         }
 
         private string CreateTableSql(string schema)
