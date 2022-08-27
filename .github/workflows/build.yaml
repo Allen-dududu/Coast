@@ -2,8 +2,8 @@ name: Build And Automated Tests
 
 on:
   push:
-  pull_request:
     branches: [ main ]
+  pull_request:
     paths:
     - '**.cs'
     - '**.csproj'
