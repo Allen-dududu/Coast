@@ -44,7 +44,7 @@
             {
                 var distributedLockProvider = _serviceProvider.GetRequiredService<IDistributedLockProvider>();
                 using var distributedLock = distributedLockProvider.CreateLock();
-                await distributedLock.TryExecuteInDistributedLock(long.MaxValue, async () =>
+                await distributedLock.TryExecuteInDistributedLock(long.MaxValue - 1, async () =>
                 {
                     await _serviceProvider.GetRequiredService<ICoastDBInitializer>().InitializeAsync(_options.Value.Schema, stoppingToken).ConfigureAwait(false);
                 }).ConfigureAwait(false);

@@ -33,6 +33,7 @@ namespace Coast.PostgreSql
             var sql = CreateTableSql(schema);
             using var connection = _unitOfWork.Connection;
             var r = await connection.ExecuteAsync(sql).ConfigureAwait(false);
+            _unitOfWork.Commit();
         }
 
         private string CreateTableSql(string schema)
@@ -46,10 +47,10 @@ CREATE TABLE IF NOT EXISTS ""{schema}"".""Barrier""(
 	""CorrelationId"" bigint NOT NULL,
 	""StepId"" bigint NOT NULL,
 	""StepType"" int NULL,
-    ""CreationTime"" TIMESTAMP NULL
+    ""CreationTime"" TIMESTAMP NULL,
+    CONSTRAINT barrier_unqiue UNIQUE (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"")
 );
-CREATE UNIQUE INDEX IF NOT EXISTS ""Barrier_Id"" 
-ON ""{schema}"".""Barrier"" (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"");
+
 
 CREATE TABLE IF NOT EXISTS ""{schema}"".""Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,
@@ -57,7 +58,6 @@ CREATE TABLE IF NOT EXISTS ""{schema}"".""Saga""(
     ""CurrentExecutionSequenceNumber"" bigint NULL,
     ""CreationTime"" TIMESTAMP NULL,
     ""FinishedTime"" TIMESTAMP NULL
-
 ) ;
 
 CREATE TABLE IF NOT EXISTS ""{schema}"".""SagaStep""( 
@@ -70,10 +70,10 @@ CREATE TABLE IF NOT EXISTS ""{schema}"".""SagaStep""(
     ""FailedReason"" text NULL,
     ""CreationTime"" TIMESTAMP NULL,
     ""ExecutionSequenceNumber"" int NOT NULL,
-    ""PublishedTime"" TIMESTAMP NULL
-) ;
-CREATE INDEX IF NOT EXISTS SagaStep_idx ON ""{schema}"".""SagaStep"" (""CorrelationId"");
+    ""PublishedTime"" TIMESTAMP NULL,
+    CONSTRAINT SagaStep_unqiueKey UNIQUE (""CorrelationId"", ""Id"")
 
+) ;
 
 CREATE TABLE IF NOT EXISTS ""{schema}"".""EventLog"" (
     ""EventId"" bigint NOT NULL,

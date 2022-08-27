@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }, subscriptionClientName, retryCount);
         }
 
-        public static CoastOptions UseRabbitMQ(this CoastOptions options, ConnectionFactory connectionFactory, string? subscriptionClientName, int retryCount = 5)
+        public static CoastOptions UseRabbitMQ(this CoastOptions options, ConnectionFactory connectionFactory, string? subscriptionClientName = null, int retryCount = 5)
         {
             if (connectionFactory is null)
             {
@@ -36,11 +36,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     var pc = s.GetRequiredService<IRabbitMQPersistentConnection>();
                     var log = s.GetRequiredService<ILogger<EventBusRabbitMQ>>();
                     var subsManager = s.GetRequiredService<IEventBusSubscriptionsManager>();
-                    var processEvent = s.GetRequiredService<IProcessSagaEvent>();
-                    var unitOfWork = s.GetRequiredService<IUnitOfWork>();
                     var option = s.GetRequiredService<CoastOptions>();
 
-                    return new EventBusRabbitMQ(pc, log, s, subsManager, processEvent, unitOfWork, option, subscriptionClientName, retryCount);
+                    return new EventBusRabbitMQ(pc, log, s, subsManager, option, subscriptionClientName, retryCount);
                 });
             });
 
