@@ -26,8 +26,6 @@ namespace Coast.RabbitMQ
         private readonly IEventBusSubscriptionsManager _subsManager;
         private readonly IServiceProvider _serviceProvider;
         private readonly int _retryCount;
-        private readonly IProcessSagaEvent _processSagaEvent;
-        private readonly IUnitOfWork _unitOfWork;
         private readonly string _callBackEventName;
 
         private IModel _consumerChannel;
@@ -38,8 +36,6 @@ namespace Coast.RabbitMQ
             ILogger<EventBusRabbitMQ> logger,
             IServiceProvider serviceProvider,
             IEventBusSubscriptionsManager subsManager,
-            IProcessSagaEvent processSagaEvent,
-            IUnitOfWork unitOfWork,
             CoastOptions coastOptions,
             string queueName = null,
             int retryCount = 5)
@@ -53,8 +49,6 @@ namespace Coast.RabbitMQ
             _consumerChannel = CreateConsumerChannel();
             _retryCount = retryCount;
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
-            _processSagaEvent = processSagaEvent;
-            _unitOfWork = unitOfWork;
         }
 
         private void SubsManager_OnEventRemoved(object sender, string eventName)
@@ -238,37 +232,21 @@ namespace Coast.RabbitMQ
             var eventName = eventArgs.RoutingKey;
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
             var @event = JsonSerializer.Deserialize<SagaEvent>(message);
+            //using var scope = _serviceProvider.CreateScope();
 
             // Call Back Event.
             if (string.Equals(eventName, _callBackEventName, StringComparison.Ordinal))
             {
                 // process callback event.
-                var callBackEventService = new CallBackEventService(_serviceProvider);
-                var (reject, sagaEvents) = await callBackEventService.ProcessEventAsync(@event).ConfigureAwait(false);
-                if (reject)
-                {
-                    _consumerChannel.BasicReject(eventArgs.DeliveryTag, requeue: true);
-                }
-                else
-                {
-                    _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
-
-                    if (sagaEvents != null)
-                    {
-                        foreach (var sagaEvent in sagaEvents)
-                        {
-                            await PublishWithLogAsync(sagaEvent).ConfigureAwait(false);
-                        }
-                    }
-                }
-
+                await HandleCallBackEvent(@event, eventArgs.DeliveryTag).ConfigureAwait(false);
                 return;
             }
 
             // Saga Event
             try
             {
-                await _processSagaEvent.ProcessEvent(eventName, @event).ConfigureAwait(false);
+                var processEventService = _serviceProvider.GetRequiredService<IProcessSagaEvent>();
+                await processEventService.ProcessEvent(eventName, @event).ConfigureAwait(false);
                 @event.Succeeded = true;
             }
             catch (Exception ex)
@@ -303,6 +281,29 @@ namespace Coast.RabbitMQ
             };
 
             await PublishWithLogAsync(@callBackEvent).ConfigureAwait(false);
+        }
+
+        private async Task HandleCallBackEvent(SagaEvent @event, ulong deliveryTag)
+        {
+            // process callback event.
+            var callBackEventService = new CallBackEventService(_serviceProvider);
+            var (reject, sagaEvents) = await callBackEventService.ProcessEventAsync(@event).ConfigureAwait(false);
+            if (reject)
+            {
+                _consumerChannel.BasicReject(deliveryTag, requeue: true);
+            }
+            else
+            {
+                _consumerChannel.BasicAck(deliveryTag, multiple: false);
+
+                if (sagaEvents != null)
+                {
+                    foreach (var sagaEvent in sagaEvents)
+                    {
+                        await PublishWithLogAsync(sagaEvent).ConfigureAwait(false);
+                    }
+                }
+            }
         }
 
         private IModel CreateConsumerChannel()

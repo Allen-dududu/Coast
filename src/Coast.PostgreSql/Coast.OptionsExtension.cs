@@ -43,12 +43,12 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             options.RegisterExtension(serviceCollection => serviceCollection.TryAddTransient<ICoastDBInitializer, CoastDBInitializer>());
-            options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddScoped<IUnitOfWork, UnitOfWork>());
+            options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IUnitOfWork, UnitOfWork>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddTransient<IBranchBarrierRepository, BranchBarrierRepository>());
             options.RegisterExtension(ServiceCollection => ServiceCollection.TryAddSingleton<IDistributedLockProvider, PostgresDistributedLock>());
 
             options.RegisterExtension(ServiceCollection => {
-                ServiceCollection.TryAddScoped<Func<IDbTransaction, IEventLogRepository>>(
+                ServiceCollection.TryAddTransient<Func<IDbTransaction, IEventLogRepository>>(
                 sp => (IDbTransaction transaction) =>
                 {
                     var schemaName = sp.GetService<IOptions<DBOptions>>().Value.Schema;
