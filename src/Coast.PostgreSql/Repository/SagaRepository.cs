@@ -97,11 +97,11 @@ VALUES (@Id, @CorrelationId, @EventName, @HasCompensation, @State, @RequestBody,
 
             string QuerySagaSql =
 $@"SELECT ""Id"", ""State"", ""CurrentExecutionSequenceNumber""
-FROM {_sagaTableName} where ""Id"" = @Id;";
+FROM {_sagaTableName} where ""Id"" = @Id for update;";
 
             string QuerySagaStepSql =
 $@"SELECT ""Id"", ""CorrelationId"", ""EventName"",""HasCompensation"", ""State"", ""RequestBody"", ""FailedReason"", ""CreationTime"" ,""ExecutionSequenceNumber"" 
-FROM  {_sagaStepTableName}  where ""CorrelationId"" = @CorrelationId;";
+FROM  {_sagaStepTableName}  where ""CorrelationId"" = @CorrelationId for update;";
 
             var saga = await Connection.QuerySingleAsync<Saga>(
                     QuerySagaSql,

@@ -29,18 +29,8 @@
 
             var saga = await unitOfWork.SagaRepository.GetSagaByIdAsync(@event.CorrelationId).ConfigureAwait(false);
 
-            if (saga.CurrentSagaStepGroup.Count > 1)
-            {
-                using var distributedLock = _distributedLockProvider.CreateLock();
-                if (!await distributedLock.TryAcquireLockAsync(saga.Id + saga.CurrentExecutionSequenceNumber).ConfigureAwait(false))
-                {
-                    await Task.Delay(100).ConfigureAwait(false);
-                    return (true, null);
-                }
-            }
-
             var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
-            var result = await barrier.Call<List<SagaEvent>>(unitOfWork.Transaction, async (trans) => await TransitAsync(@event, unitOfWork)).ConfigureAwait(false);
+            var result = await barrier.Call<List<SagaEvent>>(unitOfWork.Transaction, async (trans) => await TransitAsync(saga, @event, unitOfWork)).ConfigureAwait(false);
             return (false, result);
         }
 
@@ -52,11 +42,10 @@
         /// <param name="transaction">the transaction from ambient.</param>
         /// <param name="cancellationToken">Propagates notification that operations should be canceled.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<List<SagaEvent>> TransitAsync(SagaEvent sagaEvent, IUnitOfWork unitOfWork, CancellationToken cancellationToken = default)
+        public async Task<List<SagaEvent>> TransitAsync(Saga saga, SagaEvent sagaEvent, IUnitOfWork unitOfWork, CancellationToken cancellationToken = default)
         {
             _logger.LogDebug($"Event Name: {sagaEvent.EventName}, {sagaEvent.StepType} - Succeeded: {sagaEvent.Succeeded}");
 
-            var saga = await unitOfWork.SagaRepository.GetSagaByIdAsync(sagaEvent.CorrelationId, cancellationToken).ConfigureAwait(false);
             var nextStepEvents = saga.ProcessEvent(sagaEvent);
             await unitOfWork.SagaRepository.UpdateSagaAsync(saga, cancellationToken).ConfigureAwait(false);
 
