@@ -148,9 +148,15 @@ app.CoastSubscribe<DeductionRequest, DeductionEventHandler>();
 ### Saga step sequential control and concurrencys
 When Coast creates a Saga step, it provides the executionSequenceNumber parameter to control the sequence and concurrency of the steps.
 ```c#
-saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" }, hasCompensation: true, executionSequenceNumber: 1);
-saga.AddStep(new DeductionEvent() { Money = 101 }, hasCompensation: true, executionSequenceNumber: 2);
-saga.AddStep(new ReduceStockEvent() { Number = 1 }, hasCompensation: true, executionSequenceNumber: 3);
+saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" }, 
+    hasCompensation: true,
+    executionSequenceNumber: 1);
+saga.AddStep(new DeductionEvent() { Money = 101 },
+    hasCompensation: true,
+    executionSequenceNumber: 2);
+saga.AddStep(new ReduceStockEvent() { Number = 1 }, 
+    hasCompensation: true, 
+    executionSequenceNumber: 3);
 // The order of execution is: CreateOrderEvent -> DeductionEvent -> ReduceStockEvent
 ```
 
