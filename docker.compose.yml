@@ -1,0 +1,79 @@
+version: '3.3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: coast-rabbitmq
+    ports:
+      # AMQP protocol port
+      - '5672:5672'
+      # HTTP management UI
+      - '15672:15672'
+    healthcheck:
+        test: rabbitmq-diagnostics -q ping
+        interval: 15s
+        timeout: 15s
+        retries: 5
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  db:
+    image: postgres:14.2
+    container_name: coast-db
+    environment:
+      POSTGRES_HOST_AUTH_METHOD : trust
+      PGDATA : /var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes: 
+      - db:/var/lib/postgresql/data
+
+  order:
+      container_name: coast-order
+      image: coast-order
+      build:
+          context: ./src
+          dockerfile: /Demo/OrderManagement/Dockerfile
+      ports:
+          - 7101:80
+      depends_on:
+         db:
+              condition: service_healthy
+         rabbitmq:
+              condition: service_healthy
+  payment:
+      container_name: coast-payment
+      image: coast-payment
+      build:
+          context: ./src
+          dockerfile: /Demo/Payment/Dockerfile
+      ports:
+          - 7102:80
+      depends_on:
+         db:
+              condition: service_healthy
+         rabbitmq:
+              condition: service_healthy
+  stock:
+      container_name: coast-stock
+      image: coast-stock
+      build:
+          context: ./src
+          dockerfile: /Demo/Stock/Dockerfile
+      ports:
+          - 7103:80
+      depends_on:
+         db:
+              condition: service_healthy
+         rabbitmq:
+              condition: service_healthy
+
+volumes:
+  db:
+    driver: local
