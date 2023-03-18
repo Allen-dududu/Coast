@@ -6,7 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Saga_RabbitMQ_PostgreSql</RootNamespace>
     <Configurations>Debug;Release;Demo</Configurations>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.14.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Coast.Core\Coast.Core.csproj" />

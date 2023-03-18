@@ -39,5 +39,6 @@
 
         public TransactionStepTypeEnum StepType { get; set; }
 
+        public bool IsCallBack { get; set; }
     }
 }

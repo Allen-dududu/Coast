@@ -7,13 +7,13 @@ namespace OrderManagement.SagaEvents.EventHandling
     {
         public Task CancelAsync(CreateOrderEvent @event)
         {
-            Console.WriteLine("Cancel" + @event.OrderName);
+            Console.WriteLine("Cancel buy " + @event.OrderName);
             return Task.CompletedTask;
         }
 
         public Task CommitAsync(CreateOrderEvent @event)
         {
-           Console.WriteLine(@event.OrderName);
+           Console.WriteLine("buy " + @event.OrderName);
             return Task.CompletedTask;
         }
     }

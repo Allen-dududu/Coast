@@ -262,7 +262,7 @@ namespace Coast.RabbitMQ
                 }
 
                 // todo
-                // 补偿消息失败到一定次数后，发送到死信队列，又用户决定处理。
+                // 补偿消息失败到一定次数后，发送到死信队列，由用户决定处理。
             }
 
             // Even on exception we take the message off the queue.
@@ -277,7 +277,8 @@ namespace Coast.RabbitMQ
                 Succeeded = @event.Succeeded,
                 EventName = @event.CallBackEventName,
                 ErrorMessage = @event.ErrorMessage,
-                StepType = TransactionStepTypeEnum.CallBack,
+                StepType = @event.StepType,
+                IsCallBack = true,
             };
 
             await PublishWithLogAsync(@callBackEvent).ConfigureAwait(false);

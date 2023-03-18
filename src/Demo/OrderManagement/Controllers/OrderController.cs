@@ -16,18 +16,17 @@ namespace OrderManagement.Controllers
         }
 
         [HttpPost("Create")]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int number)
         {
-            for(int i = 0; i < 1000; i++)
-            {
-                var saga = await _sagaManager.CreateAsync();
-                // Create Order
-                saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" }, hasCompensation: true);
-                // Deduct $100
-                saga.AddStep(new DeductionEvent() { Money = 101 }, hasCompensation: true);
-                // Reduce a pair of shoes in stock
-                await _sagaManager.StartAsync(saga);
-            }
+            var saga = await _sagaManager.CreateAsync();
+            // Create Order
+            saga.AddStep(new CreateOrderEvent() { OrderName = "shoes", Number = number }, hasCompensation: true);
+            // Deduct balance
+            saga.AddStep(new DeductionEvent() { Money = 101 * number }, hasCompensation: true);
+            // Reduce a pair of shoes in stock
+            saga.AddStep(new ReduceStockEvent() { Number = number }, hasCompensation: true);
+
+            await _sagaManager.StartAsync(saga);
 
             return Ok();
         }

@@ -17,10 +17,12 @@ namespace Stock.SagaEvents.EventHandling
         public Task CommitAsync(ReduceStockEvent @event)
         {
             Console.WriteLine($"ReduceStock {@event.Number}");
-            if(@event.Number == 2)
+
+            if(@event.Number >= 2)
             {
                 throw new Exception("error");
             }
+
             return Task.CompletedTask;
         }
     }

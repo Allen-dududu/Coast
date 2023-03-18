@@ -183,7 +183,7 @@
                 {
                     @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
                 }
-                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed))
+                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed || i.State == SagaStepStateEnum.Compensated))
                 {
                     @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
                 }

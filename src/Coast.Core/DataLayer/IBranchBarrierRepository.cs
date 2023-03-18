@@ -5,6 +5,6 @@
 
     public interface IBranchBarrierRepository
     {
-        Task<(int affected, string error)> InsertBarrierAsync(IDbTransaction trans, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType);
+        Task<(int affected, string error)> InsertBarrierAsync(IDbTransaction trans, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType, bool isCallBack);
     }
 }

@@ -16,12 +16,12 @@
             _tableName = $"\"{options.Value.Schema}\".\"Barrier\"";
         }
 
-        public async Task<(int affected, string error)> InsertBarrierAsync(IDbTransaction trans, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType)
+        public async Task<(int affected, string error)> InsertBarrierAsync(IDbTransaction trans, TransactionTypeEnum transactionType, long correlationId, long stepId, TransactionStepTypeEnum stepType, bool isCallBack)
         {
             var InsertIgnoreSql =
- $@"INSERT INTO {_tableName} (""Id"", ""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""CreationTime"")
-VALUES(@Id, @TransactionType, @CorrelationId, @StepId, @StepType, @CreationTime) 
-ON CONFLICT (""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"") 
+ $@"INSERT INTO {_tableName} (""Id"", ""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""CreationTime"", ""IsCallBack"")
+VALUES(@Id, @TransactionType, @CorrelationId, @StepId, @StepType, @CreationTime, @IsCallBack) 
+ON CONFLICT (""TransactionType"", ""CorrelationId"", ""StepId"",""StepType"", ""IsCallBack"") 
 DO NOTHING;";
 
             int affected = 0;
@@ -30,7 +30,7 @@ DO NOTHING;";
             {
                 affected = await trans.Connection.ExecuteAsync(
                     InsertIgnoreSql,
-                    new { id = SnowflakeId.Default().NextId(), TransactionType = transactionType, CorrelationId = correlationId, StepId = stepId, StepType = stepType, CreationTime = DateTime.UtcNow },
+                    new { id = SnowflakeId.Default().NextId(), TransactionType = transactionType, CorrelationId = correlationId, StepId = stepId, StepType = stepType, CreationTime = DateTime.UtcNow, IsCallBack = isCallBack },
                     transaction: trans).ConfigureAwait(false);
             }
             catch (Exception ex)
