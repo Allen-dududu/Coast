@@ -21,7 +21,18 @@
 
         public DateTime CreationDate { get; private set; }
 
-        public string EventName { get; set; }
+        public string EventName
+        {
+            get
+            {
+                return EventName ?? this.GetType().Name;
+            }
+
+            set
+            {
+                this.EventName = value;
+            }
+        }
 
         public TransactionTypeEnum TransactionType { get; set; }
 

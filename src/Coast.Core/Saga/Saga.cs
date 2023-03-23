@@ -101,6 +101,8 @@
 
         internal List<SagaEvent> Start()
         {
+            CreationTime = DateTime.UtcNow;
+
             if (SagaSteps.Count == 0)
             {
                 State = SagaStateEnum.Completed;
@@ -146,6 +148,7 @@
         public List<SagaEvent>? ProcessEvent(SagaEvent @sagaEvent)
         {
             var currentStep = CurrentSagaStepGroup.FirstOrDefault(i => i.Id == @sagaEvent.StepId);
+
             if (currentStep == null)
             {
                 return null;
@@ -219,6 +222,7 @@
         private List<SagaStep>? GoPrevious()
         {
             var prev = PreviousStepGroup;
+
             while (prev != null)
             {
                 CurrentExecutionSequenceNumber = prev[0].ExecutionSequenceNumber;
@@ -238,6 +242,7 @@
         private void CancelSubsequentSteps()
         {
             var currentStepGroupId = SagaStepGroups.FindIndex(x => x.Key == CurrentExecutionSequenceNumber);
+
             if (currentStepGroupId >= 0)
             {
                 for (var idx = currentStepGroupId + 1; idx < SagaStepGroups.Count; idx++)
@@ -271,7 +276,6 @@
                 State = SagaStateEnum.Aborting;
             }
         }
-
         #endregion Private Methods
     }
 }

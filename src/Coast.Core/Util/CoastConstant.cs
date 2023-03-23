@@ -6,9 +6,10 @@
 
         internal static string WorkerId { get; set; }
 
-        public static string CallBackEventSuffix { get; } = ".CallBack.Coast";
+        public const string CallBackEventSuffix = ".CallBack.Coast";
 
-        public static string QueueNameSuffix { get; } = ".Queue.Coast";
+        public const string QueueNameSuffix = ".Queue.Coast";
 
+        public const string DeadQueueName = "DeadQueue.Coast";
     }
 }

@@ -79,6 +79,7 @@
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
                 CallBackEventName = CoastConstant.DomainName + CoastConstant.CallBackEventSuffix,
+                NotAllowedFail = !HasCompensation,
             };
         }
 
@@ -98,6 +99,7 @@
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
                 CallBackEventName = CoastConstant.DomainName + CoastConstant.CallBackEventSuffix,
+                NotAllowedFail = true,
             };
         }
     }
