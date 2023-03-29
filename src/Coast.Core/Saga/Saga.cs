@@ -87,13 +87,13 @@
 
         public List<SagaStep> SagaSteps { get; set; } = new List<SagaStep>();
 
-        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = default, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
         }
 
-        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = default, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, stepEventName, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
@@ -137,7 +137,7 @@
                     step.State = SagaStepStateEnum.Started;
                 }
 
-                return firstGroup.Select(i => i.GetStepEvents(this.Id)).ToList();
+                return firstGroup.Select(i => i.GetStepEvents()).ToList();
             }
 
             State = SagaStateEnum.Aborted;
@@ -184,17 +184,17 @@
 
                 if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Succeeded))
                 {
-                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
+                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents()).ToList();
                 }
                 else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed || i.State == SagaStepStateEnum.Compensated))
                 {
-                    @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
+                    @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents()).ToList();
                 }
                 else if (CurrentSagaStepGroup.Any(i => i.State == SagaStepStateEnum.Failed))
                 {
                     var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.HasCompensation == true).ToList();
                     needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
-                    @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
+                    @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents()).ToList();
                 }
 
                 UpdateSagaState();

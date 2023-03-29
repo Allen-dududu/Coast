@@ -68,7 +68,7 @@
         /// </summary>
         public int ExecutionSequenceNumber { get; set; }
 
-        public SagaEvent GetStepEvents(long sagaId)
+        public SagaEvent GetStepEvents()
         {
             return new SagaEvent
             {
@@ -83,7 +83,7 @@
             };
         }
 
-        public SagaEvent? GetStepCompensateEvents(long sagaId)
+        public SagaEvent? GetStepCompensateEvents()
         {
             if (!HasCompensation)
             {
