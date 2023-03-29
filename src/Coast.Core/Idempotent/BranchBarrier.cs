@@ -15,6 +15,7 @@
             TransactionTypeEnum transactionType,
             long correlationId,
             long stepId,
+            bool isCallBack,
             TransactionStepTypeEnum stepType,
             IBranchBarrierRepository branchBarrierRepository,
             ILogger logger,
@@ -24,6 +25,7 @@
             CorrelationId = correlationId;
             StepId = stepId;
             StepType = stepType;
+            IsCallBack = isCallBack;
             _branchBarrierRepository = branchBarrierRepository;
             _logger = logger;
             _eventLogRepositoryFactory = eventLogRepositoryFactory;
@@ -40,6 +42,7 @@
             CorrelationId = @event.CorrelationId;
             StepId = @event.StepId;
             StepType = @event.StepType;
+            IsCallBack = @event.IsCallBack;
             _branchBarrierRepository = branchBarrierRepository;
             _logger = logger;
             _eventLogRepositoryFactory = eventLogRepositoryFactory;
@@ -64,6 +67,8 @@
 
         public TransactionStepTypeEnum StepType { get; set; }
 
+        public bool IsCallBack { get; set; }
+
         public async Task Call(IDbTransaction trans, Func<IDbTransaction, Task> busiCall)
         {
             // https://zhuanlan.zhihu.com/p/388444465
@@ -81,7 +86,7 @@
             catch (Exception ex)
             {
                 trans.Rollback();
-                _logger.LogError(ex, $"Call error, CorrelationId={CorrelationId}, TransactionType={TransactionType}, StepId={StepId}, StepType={StepType}");
+                _logger.LogError(ex, $"Call error, CorrelationId={CorrelationId}, TransactionType={TransactionType}, StepId={StepId}, StepType={StepType}, IsCallBack={IsCallBack}");
 
                 throw;
             }
@@ -104,7 +109,7 @@
                 }
 
                 _logger.LogDebug($"The event has been consumed. CorrelationId={CorrelationId}, TransactionType={TransactionType}, StepId={StepId}, StepType={StepType}");
-                return default(T);
+                return default;
             }
             catch (Exception ex)
             {
@@ -121,7 +126,8 @@
                                                                                    TransactionType,
                                                                                    CorrelationId,
                                                                                    StepId,
-                                                                                   StepType).ConfigureAwait(false);
+                                                                                   StepType,
+                                                                                   IsCallBack).ConfigureAwait(false);
 
             int affected2 = 0;
             string error2 = string.Empty;
@@ -131,7 +137,8 @@
                                                                                          TransactionType,
                                                                                          CorrelationId,
                                                                                          StepId,
-                                                                                         TransactionStepTypeEnum.Commit).ConfigureAwait(false);
+                                                                                         TransactionStepTypeEnum.Commit,
+                                                                                         IsCallBack).ConfigureAwait(false);
             }
 
             if (!string.IsNullOrWhiteSpace(error1) || !string.IsNullOrWhiteSpace(error2))

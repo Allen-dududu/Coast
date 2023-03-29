@@ -76,7 +76,7 @@ namespace Coast.RabbitMQ
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var eventName = @event.EventName ?? @event.GetType().Name;
+            var eventName = @event.EventName;
             var message = JsonSerializer.Serialize(@event, @event.GetType());
 
             _logger.LogTrace("Creating RabbitMQ channel to publish event: {EventId} ({EventName})", @event.Id, eventName);
@@ -193,6 +193,7 @@ namespace Coast.RabbitMQ
         private void DoInternalSubscription(string eventName)
         {
             var containsKey = _subsManager.HasSubscriptionsForEvent(eventName);
+
             if (!containsKey)
             {
                 if (!_persistentConnection.IsConnected)
@@ -232,7 +233,6 @@ namespace Coast.RabbitMQ
             var eventName = eventArgs.RoutingKey;
             var message = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
             var @event = JsonSerializer.Deserialize<SagaEvent>(message);
-            //using var scope = _serviceProvider.CreateScope();
 
             // Call Back Event.
             if (string.Equals(eventName, _callBackEventName, StringComparison.Ordinal))
@@ -256,13 +256,16 @@ namespace Coast.RabbitMQ
                 @event.FailedCount++;
                 _logger.LogWarning(ex, "----- ERROR Processing message \"{Message}\"", message);
 
-                if (@event.FailedCount > 3)
+                if (@event.NotAllowedFail && @event.FailedCount > this._retryCount)
                 {
-                    return;
+                    @event.EventName = CoastConstant.DeadQueueName;
                 }
 
-                // todo
-                // 补偿消息失败到一定次数后，发送到死信队列，又用户决定处理。
+                _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+
+                await PublishWithLogAsync(@event).ConfigureAwait(false);
+
+                return;
             }
 
             // Even on exception we take the message off the queue.
@@ -277,7 +280,8 @@ namespace Coast.RabbitMQ
                 Succeeded = @event.Succeeded,
                 EventName = @event.CallBackEventName,
                 ErrorMessage = @event.ErrorMessage,
-                StepType = TransactionStepTypeEnum.CallBack,
+                StepType = @event.StepType,
+                IsCallBack = true,
             };
 
             await PublishWithLogAsync(@callBackEvent).ConfigureAwait(false);
@@ -288,6 +292,7 @@ namespace Coast.RabbitMQ
             // process callback event.
             var callBackEventService = new CallBackEventService(_serviceProvider);
             var (reject, sagaEvents) = await callBackEventService.ProcessEventAsync(@event).ConfigureAwait(false);
+
             if (reject)
             {
                 _consumerChannel.BasicReject(deliveryTag, requeue: true);

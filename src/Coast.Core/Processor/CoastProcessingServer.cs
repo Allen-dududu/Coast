@@ -80,7 +80,7 @@
             }
             finally
             {
-                _logger.LogInformation("### CAP shutdown!");
+                _logger.LogInformation("### Coast shutdown!");
             }
         }
 

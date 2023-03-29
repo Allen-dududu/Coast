@@ -4,6 +4,6 @@
 
     public abstract class EventRequestBody
     {
-        public IDictionary<string, string> Headers { get; set; }
+        public IDictionary<string, string> Body { get; set; }
     }
 }

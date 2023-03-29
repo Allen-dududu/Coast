@@ -7,7 +7,6 @@
         public string RequestBody { get; set; }
 
         public string ErrorMessage { get; set; }
-
     }
 
     public class SagaEvent<T> : IntegrationEvent where T : EventRequestBody

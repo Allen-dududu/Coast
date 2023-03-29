@@ -47,10 +47,10 @@ CREATE TABLE IF NOT EXISTS ""{schema}"".""Barrier""(
 	""CorrelationId"" bigint NOT NULL,
 	""StepId"" bigint NOT NULL,
 	""StepType"" int NULL,
+    ""IsCallBack"" bool NOT NULL,
     ""CreationTime"" TIMESTAMP NULL,
-    CONSTRAINT barrier_unqiue UNIQUE (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"")
+    CONSTRAINT barrier_unqiue UNIQUE (""TransactionType"", ""CorrelationId"", ""StepId"", ""StepType"", ""IsCallBack"")
 );
-
 
 CREATE TABLE IF NOT EXISTS ""{schema}"".""Saga""(
 	""Id"" bigint PRIMARY KEY NOT NULL,

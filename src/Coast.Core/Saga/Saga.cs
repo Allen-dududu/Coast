@@ -87,13 +87,13 @@
 
         public List<SagaStep> SagaSteps { get; set; } = new List<SagaStep>();
 
-        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = default, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
         }
 
-        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = default, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, stepEventName, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
@@ -101,6 +101,8 @@
 
         internal List<SagaEvent> Start()
         {
+            CreationTime = DateTime.UtcNow;
+
             if (SagaSteps.Count == 0)
             {
                 State = SagaStateEnum.Completed;
@@ -135,7 +137,7 @@
                     step.State = SagaStepStateEnum.Started;
                 }
 
-                return firstGroup.Select(i => i.GetStepEvents(this.Id)).ToList();
+                return firstGroup.Select(i => i.GetStepEvents()).ToList();
             }
 
             State = SagaStateEnum.Aborted;
@@ -146,6 +148,7 @@
         public List<SagaEvent>? ProcessEvent(SagaEvent @sagaEvent)
         {
             var currentStep = CurrentSagaStepGroup.FirstOrDefault(i => i.Id == @sagaEvent.StepId);
+
             if (currentStep == null)
             {
                 return null;
@@ -181,17 +184,17 @@
 
                 if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Succeeded))
                 {
-                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents(this.Id)).ToList();
+                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents()).ToList();
                 }
-                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed))
+                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed || i.State == SagaStepStateEnum.Compensated))
                 {
-                    @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
+                    @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents()).ToList();
                 }
                 else if (CurrentSagaStepGroup.Any(i => i.State == SagaStepStateEnum.Failed))
                 {
                     var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.HasCompensation == true).ToList();
                     needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
-                    @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents(this.Id)).ToList();
+                    @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents()).ToList();
                 }
 
                 UpdateSagaState();
@@ -219,6 +222,7 @@
         private List<SagaStep>? GoPrevious()
         {
             var prev = PreviousStepGroup;
+
             while (prev != null)
             {
                 CurrentExecutionSequenceNumber = prev[0].ExecutionSequenceNumber;
@@ -238,6 +242,7 @@
         private void CancelSubsequentSteps()
         {
             var currentStepGroupId = SagaStepGroups.FindIndex(x => x.Key == CurrentExecutionSequenceNumber);
+
             if (currentStepGroupId >= 0)
             {
                 for (var idx = currentStepGroupId + 1; idx < SagaStepGroups.Count; idx++)
@@ -271,7 +276,6 @@
                 State = SagaStateEnum.Aborting;
             }
         }
-
         #endregion Private Methods
     }
 }
