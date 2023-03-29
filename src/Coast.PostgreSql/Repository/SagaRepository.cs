@@ -107,7 +107,7 @@ FROM  {_sagaStepTableName}  where ""CorrelationId"" = @CorrelationId for update;
                     QuerySagaSql,
                     new { Id = sagaId }).ConfigureAwait(false);
 
-            var sagaSteps = await Connection .QueryAsync<SagaStep>(
+            var sagaSteps = await Connection.QueryAsync<SagaStep>(
                     QuerySagaStepSql,
                     new { CorrelationId = sagaId }).ConfigureAwait(false);
 
