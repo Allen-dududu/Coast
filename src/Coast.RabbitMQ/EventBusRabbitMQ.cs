@@ -256,16 +256,26 @@ namespace Coast.RabbitMQ
                 @event.FailedCount++;
                 _logger.LogWarning(ex, "----- ERROR Processing message \"{Message}\"", message);
 
-                if (@event.NotAllowedFail && @event.FailedCount > this._retryCount)
+                if (@event.FailedCount < this._retryCount)
                 {
-                    @event.EventName = CoastConstant.DeadQueueName;
+                    _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+                    await PublishWithLogAsync(@event).ConfigureAwait(false);
+
+                    return;
                 }
+                else
+                {
+                    _logger.LogWarning(ex, "-----Reach Max retry times: \"{_retryCount}\"", this._retryCount);
 
-                _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+                    if (@event.NotAllowedFail)
+                    {
+                        @event.EventName = CoastConstant.DeadQueueName;
+                        _consumerChannel.BasicAck(eventArgs.DeliveryTag, multiple: false);
+                        await PublishWithLogAsync(@event).ConfigureAwait(false);
 
-                await PublishWithLogAsync(@event).ConfigureAwait(false);
-
-                return;
+                        return;
+                    }
+                }
             }
 
             // Even on exception we take the message off the queue.

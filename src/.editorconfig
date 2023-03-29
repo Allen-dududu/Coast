@@ -11,3 +11,6 @@ dotnet_diagnostic.CS8632.severity = silent
 
 # Default severity for analyzer diagnostics with category 'StyleCop.CSharp.ReadabilityRules'
 dotnet_analyzer_diagnostic.category-StyleCop.CSharp.ReadabilityRules.severity = none
+
+# Default severity for all analyzer diagnostics
+dotnet_analyzer_diagnostic.severity = silent

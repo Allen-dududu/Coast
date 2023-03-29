@@ -25,9 +25,13 @@ builder.Services.AddCosat(x =>
 );
 });
 builder.Services.AddTransient<ReduceStockEventHandler>();
+builder.Services.AddTransient<ReduceStockCommitEventHandler>();
+
 
 var app = builder.Build();
 app.CoastSubscribe<ReduceStockEvent, ReduceStockEventHandler>();
+app.CoastSubscribe<ReduceStockCommitEvent, ReduceStockCommitEventHandler>();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

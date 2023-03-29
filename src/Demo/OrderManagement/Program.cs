@@ -23,9 +23,12 @@ builder.Services.AddCosat(x =>
 });
 
 builder.Services.AddTransient<CreateOrderEventHandler>();
+builder.Services.AddTransient<CreateOrderCommitEventHandler>();
+
 
 var app = builder.Build();
 app.CoastSubscribe<CreateOrderEvent, CreateOrderEventHandler>();
+app.CoastSubscribe<CreateOrderCommitEvent, CreateOrderCommitEventHandler>();
 
 // Configure the HTTP request pipeline.
 

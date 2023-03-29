@@ -68,7 +68,7 @@
         /// </summary>
         public int ExecutionSequenceNumber { get; set; }
 
-        public SagaEvent GetStepEvents()
+        public SagaEvent GetStepEvents(int lastExecutionSequenceNumber)
         {
             return new SagaEvent
             {
@@ -79,7 +79,7 @@
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
                 CallBackEventName = CoastConstant.DomainName + CoastConstant.CallBackEventSuffix,
-                NotAllowedFail = !HasCompensation,
+                NotAllowedFail = !HasCompensation && lastExecutionSequenceNumber != ExecutionSequenceNumber,
             };
         }
 

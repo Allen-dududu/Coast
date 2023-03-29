@@ -21,9 +21,11 @@ builder.Services.AddCosat(x =>
 );
 });
 builder.Services.AddTransient<DeductionEventHandler>();
+builder.Services.AddTransient<DeductionCommitEventHandler>();
 
 var app = builder.Build(); 
 app.CoastSubscribe<DeductionEvent, DeductionEventHandler>();
+app.CoastSubscribe<DeductionCommitEvent, DeductionCommitEventHandler>();
 
 // Configure the HTTP request pipeline.
 
