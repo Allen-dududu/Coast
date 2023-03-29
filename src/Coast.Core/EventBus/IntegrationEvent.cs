@@ -5,6 +5,8 @@
 
     public class IntegrationEvent
     {
+        private string? eventName;
+
         public IntegrationEvent()
         {
             Id = SnowflakeId.Default().NextId();
@@ -21,7 +23,18 @@
 
         public DateTime CreationDate { get; private set; }
 
-        public string EventName { get; set; }
+        public string EventName
+        {
+            get
+            {
+                return this.eventName ?? this.GetType().Name;
+            }
+
+            set
+            {
+                this.eventName = value;
+            }
+        }
 
         public TransactionTypeEnum TransactionType { get; set; }
 
@@ -40,5 +53,10 @@
         public TransactionStepTypeEnum StepType { get; set; }
 
         public bool IsCallBack { get; set; }
+
+        public bool NotAllowedFail
+        {
+            get; set;
+        }
     }
 }

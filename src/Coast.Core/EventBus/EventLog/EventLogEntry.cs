@@ -15,7 +15,7 @@
         {
             EventId = @event.Id;
             CreationTime = @event.CreationDate;
-            EventTypeName = @event.EventName ?? @event.GetType().FullName;
+            EventTypeName = @event.EventName;
             Content = JsonSerializer.Serialize(@event, @event.GetType());
             State = EventStateEnum.NotPublished;
             TimesSent = 0;
