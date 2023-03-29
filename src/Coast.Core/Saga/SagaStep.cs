@@ -11,7 +11,7 @@
 
         }
 
-        public SagaStep(long correlationId, EventRequestBody sagaRequestBody, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public SagaStep(long correlationId, EventRequestBody sagaRequestBody, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             if (executionSequenceNumber < 0)
             {
@@ -25,7 +25,7 @@
             HasCompensation = hasCompensation;
         }
 
-        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             if (executionSequenceNumber < 0)
             {
@@ -68,7 +68,7 @@
         /// </summary>
         public int ExecutionSequenceNumber { get; set; }
 
-        public SagaEvent GetStepEvents()
+        public SagaEvent GetStepEvents(int lastExecutionSequenceNumber)
         {
             return new SagaEvent
             {
@@ -79,7 +79,7 @@
                 RequestBody = RequestBody,
                 TransactionType = TransactionTypeEnum.Saga,
                 CallBackEventName = CoastConstant.DomainName + CoastConstant.CallBackEventSuffix,
-                NotAllowedFail = !HasCompensation,
+                NotAllowedFail = !HasCompensation && lastExecutionSequenceNumber != ExecutionSequenceNumber,
             };
         }
 

@@ -26,8 +26,17 @@
         public async Task<(bool reject, List<SagaEvent> sagaEvents)> ProcessEventAsync(SagaEvent @event)
         {
             using var unitOfWork = _serviceProvider.GetService<IUnitOfWork>();
-
             var saga = await unitOfWork.SagaRepository.GetSagaByIdAsync(@event.CorrelationId).ConfigureAwait(false);
+
+            if (saga.CurrentSagaStepGroup.Count > 1)
+            {
+                using var distributedLock = _distributedLockProvider.CreateLock();
+                if (!await distributedLock.TryAcquireLockAsync(saga.Id + saga.CurrentExecutionSequenceNumber).ConfigureAwait(false))
+                {
+                    await Task.Delay(100).ConfigureAwait(false);
+                    return (true, null);
+                }
+            }
 
             var barrier = _barrierService.CreateBranchBarrier(@event, _logger);
             var result = await barrier.Call<List<SagaEvent>>(unitOfWork.Transaction, async (trans) => await TransitAsync(saga, @event, unitOfWork)).ConfigureAwait(false);

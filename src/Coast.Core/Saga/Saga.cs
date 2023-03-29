@@ -38,15 +38,19 @@
 
         public string? AbortingReason { get; set; }
 
+        public List<SagaStep> SagaSteps { get; set; } = new List<SagaStep>();
+
         internal ICollection<SagaStep> CurrentSagaStepGroup => SagaSteps.Where(s => s.ExecutionSequenceNumber == CurrentExecutionSequenceNumber).ToList();
 
-        private List<IGrouping<int, SagaStep>> SagaStepGroups => SagaSteps.GroupBy(i => i.ExecutionSequenceNumber).OrderBy(i => i.Key).ToList();
+        private List<IGrouping<int, SagaStep>> _sagaStepGroups => SagaSteps.GroupBy(i => i.ExecutionSequenceNumber).OrderBy(i => i.Key).ToList();
 
-        private List<SagaStep>? NextStepGroup
+        private int _lastExecutionSequenceNumber => _sagaStepGroups.Last().Key;
+
+        private List<SagaStep>? _nextStepGroup
         {
             get
             {
-                var idx = SagaStepGroups.FindIndex(s => s.Key == CurrentExecutionSequenceNumber);
+                var idx = _sagaStepGroups.FindIndex(s => s.Key == CurrentExecutionSequenceNumber);
 
                 if (idx == -1)
                 {
@@ -54,20 +58,20 @@
                 }
 
                 Interlocked.Increment(ref idx);
-                if (idx == SagaStepGroups.Count)
+                if (idx == _sagaStepGroups.Count)
                 {
                     return null;
                 }
 
-                return SagaStepGroups[idx].Select(s => s).ToList();
+                return _sagaStepGroups[idx].Select(s => s).ToList();
             }
         }
 
-        private List<SagaStep>? PreviousStepGroup
+        private List<SagaStep>? _previousStepGroup
         {
             get
             {
-                var idx = SagaStepGroups.FindIndex(s => s.Key == CurrentExecutionSequenceNumber);
+                var idx = _sagaStepGroups.FindIndex(s => s.Key == CurrentExecutionSequenceNumber);
 
                 if (idx == -1)
                 {
@@ -80,20 +84,18 @@
                     return null;
                 }
 
-                return SagaStepGroups[idx].Select(s => s).ToList();
+                return _sagaStepGroups[idx].Select(s => s).ToList();
 
             }
         }
 
-        public List<SagaStep> SagaSteps { get; set; } = new List<SagaStep>();
-
-        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
         }
 
-        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, stepEventName, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
@@ -137,7 +139,7 @@
                     step.State = SagaStepStateEnum.Started;
                 }
 
-                return firstGroup.Select(i => i.GetStepEvents()).ToList();
+                return firstGroup.Select(i => i.GetStepEvents(_lastExecutionSequenceNumber)).ToList();
             }
 
             State = SagaStateEnum.Aborted;
@@ -184,7 +186,7 @@
 
                 if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Succeeded))
                 {
-                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents()).ToList();
+                    @firingEvents = GoNext()?.Select(i => i.GetStepEvents(_lastExecutionSequenceNumber)).ToList();
                 }
                 else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed || i.State == SagaStepStateEnum.Compensated))
                 {
@@ -192,7 +194,7 @@
                 }
                 else if (CurrentSagaStepGroup.Any(i => i.State == SagaStepStateEnum.Failed))
                 {
-                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.HasCompensation == true).ToList();
+                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.State !=SagaStepStateEnum.Compensating && i.State != SagaStepStateEnum.Compensated && i.HasCompensation == true).ToList();
                     needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
                     @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents()).ToList();
                 }
@@ -208,7 +210,7 @@
         #region Private Methods
         private List<SagaStep>? GoNext()
         {
-            var next = NextStepGroup;
+            var next = _nextStepGroup;
             if (next == null)
             {
                 return null;
@@ -221,7 +223,7 @@
 
         private List<SagaStep>? GoPrevious()
         {
-            var prev = PreviousStepGroup;
+            var prev = _previousStepGroup;
 
             while (prev != null)
             {
@@ -233,7 +235,7 @@
                     return needCompensate;
                 }
 
-                prev = PreviousStepGroup;
+                prev = _previousStepGroup;
             }
 
             return null;
@@ -241,13 +243,13 @@
 
         private void CancelSubsequentSteps()
         {
-            var currentStepGroupId = SagaStepGroups.FindIndex(x => x.Key == CurrentExecutionSequenceNumber);
+            var currentStepGroupId = _sagaStepGroups.FindIndex(x => x.Key == CurrentExecutionSequenceNumber);
 
             if (currentStepGroupId >= 0)
             {
-                for (var idx = currentStepGroupId + 1; idx < SagaStepGroups.Count; idx++)
+                for (var idx = currentStepGroupId + 1; idx < _sagaStepGroups.Count; idx++)
                 {
-                    SagaStepGroups[idx].ToList().ForEach(i => i.State = SagaStepStateEnum.Cancelled);
+                    _sagaStepGroups[idx].ToList().ForEach(i => i.State = SagaStepStateEnum.Cancelled);
                 }
             }
         }
