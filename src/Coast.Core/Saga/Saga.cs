@@ -89,13 +89,13 @@
             }
         }
 
-        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(EventRequestBody sagaRequest, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
         }
 
-        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public Saga AddStep(string stepEventName, object sagaRequest, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             SagaSteps.Add(new SagaStep(Id, stepEventName, sagaRequest, hasCompensation, executionSequenceNumber));
             return this;
@@ -194,7 +194,7 @@
                 }
                 else if (CurrentSagaStepGroup.Any(i => i.State == SagaStepStateEnum.Failed))
                 {
-                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.HasCompensation == true).ToList();
+                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.State !=SagaStepStateEnum.Compensating && i.State != SagaStepStateEnum.Compensated && i.HasCompensation == true).ToList();
                     needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
                     @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents()).ToList();
                 }

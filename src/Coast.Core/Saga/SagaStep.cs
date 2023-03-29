@@ -11,7 +11,7 @@
 
         }
 
-        public SagaStep(long correlationId, EventRequestBody sagaRequestBody, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public SagaStep(long correlationId, EventRequestBody sagaRequestBody, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             if (executionSequenceNumber < 0)
             {
@@ -25,7 +25,7 @@
             HasCompensation = hasCompensation;
         }
 
-        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = false, int executionSequenceNumber = int.MaxValue)
+        public SagaStep(long correlationId, string eventName, object sagaRequestBody, bool hasCompensation = true, int executionSequenceNumber = int.MaxValue)
         {
             if (executionSequenceNumber < 0)
             {
