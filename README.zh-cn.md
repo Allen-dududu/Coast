@@ -11,6 +11,9 @@ Coast是一个去中心化基于消息代理的补偿分布式事务框架。与
 ## Saga
 Saga模型是把一个分布式事务拆分为多个本地事务，每个本地事务都有相应的执行模块和补偿模块，当Saga事务中任意一个本地事务出错时，可以通过调用相关的补偿方法恢复之前的事务，达到事务最终一致性。
 
+## TCC
+TCC 是一种补偿型事务，该模型要求应用的每个服务提供 Try、Confirm、Cancel 三个接口，它的核心思想是通过对资源的预留，尽早释放对资源的加锁，如果事务可以提交，则完成对预留资源的确认，如果事务要回滚，则释放预留的资源。。
+
 ### Nuget
 
 你可以运行以下命令在你的项目中安装Coast。
@@ -66,11 +69,11 @@ builder.Services.AddCosat(x =>
         {
             var saga = await _sagaManager.CreateAsync();
             // Create Order
-            saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" }, hasCompensation: true);
+            saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" });
             // Deduct $100
-            saga.AddStep(new DeductionEvent() { Money = 101 }, hasCompensation: true);
+            saga.AddStep(new DeductionEvent() { Money = 101 });
             // Reduce a pair of shoes in stock
-            saga.AddStep(new ReduceStockEvent() { Number = 1 }, hasCompensation: true);
+            saga.AddStep(new ReduceStockEvent() { Number = 1 });
 
             // Coast会按照添加saga步骤的顺序，依次发送事件（前提是上个事件被成功处理）。
             await _sagaManager.StartAsync(saga);
@@ -164,6 +167,27 @@ Coast提供了默认的幂等判断，所以不需要用户编写判断逻辑。
 
 ## TCC
 
-TCC 是一种补偿型事务，该模型要求应用的每个服务提供 Try、Confirm、Cancel 三个接口，它的核心思想是通过对资源的预留，尽早释放对资源的加锁，如果事务可以提交，则完成对预留资源的确认，如果事务要回滚，则释放预留的资源。
+Coast虽然没有提供TCC操作的接口，但是你依旧可以利用Saga步骤顺序控制来实现：
+```c#
+        [HttpPost("TCC")]
+        public async Task<IActionResult> TCC(int number)
+        {
+            var saga = await _sagaManager.CreateAsync();
 
-Next Release ---------------
+            // Try, Cancel
+            saga.AddStep(new CreateOrderEvent() { OrderName = "shoes", Number = number }, hasCompensation: true, executionSequenceNumber: 1);
+            saga.AddStep(new DeductionEvent() { Money = 101 * number }, hasCompensation: true, executionSequenceNumber: 1);
+            saga.AddStep(new ReduceStockEvent() { Number = number }, hasCompensation: true, executionSequenceNumber: 1);
+
+            // Commit
+            saga.AddStep(new CreateOrderCommitEvent() { OrderName = "shoes", Number = number }, hasCompensation: false, executionSequenceNumber: 2);
+            saga.AddStep(new DeductionCommitEvent() { Money = 101 * number }, hasCompensation: false, executionSequenceNumber: 2);
+            saga.AddStep(new ReduceStockCommitEvent() { Number = number }, hasCompensation: false, executionSequenceNumber: 2);
+
+            await _sagaManager.StartAsync(saga);
+
+            return Ok();
+        }
+```
+上面有两组并发Saga，第一组承担着TCC中的Try，Cancel操作，在Try中不再是直接扣款，或者直接减少库存，而且选择冻结资源。如果冻结资源时出现错误，则直接执行Cancel操作，如果成功，则进入第二组，第二组没有补偿操作，并且不容许失败，负责TCC中的Commit操作，解除冻结的资源，进行扣款或者是减少库存。
+

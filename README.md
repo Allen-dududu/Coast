@@ -11,6 +11,9 @@ Distributed transaction frameworks usually guarantee eventual consistency by rol
 ## Saga
 The Saga model is to split a distributed transaction into multiple local transactions. Each local transaction has a corresponding execution module and compensation module. When any local transaction in the Saga transaction fails, it can be restored by calling the relevant compensation method. to achieve eventual transaction consistency.
 
+## TCC
+TCC is also a compensating transaction. This model requires each service of the application to provide three interfaces: Try, Confirm, and Cancel. Its core idea is to release the lock on resources as soon as possible by reserving resources. If the transaction can be committed , the confirmation of reserved resources is completed, and if the transaction is to be rolled back, the reserved resources are released.
+
 ### Nuget
 
 You can run the following command to install Coast in your project.
@@ -67,11 +70,11 @@ First, let's create a Saga in the controller of the order service.
         {
             var saga = await _sagaManager.CreateAsync();
             // Create Order
-            saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" }, hasCompensation: true);
+            saga.AddStep(new CreateOrderEvent() { OrderName = "Buy a pair of shoes" });
             // Deduct $100
-            saga.AddStep(new DeductionEvent() { Money = 101 }, hasCompensation: true);
+            saga.AddStep(new DeductionEvent() { Money = 101 });
             // Reduce a pair of shoes in stock
-            saga.AddStep(new ReduceStockEvent() { Number = 1 }, hasCompensation: true);
+            saga.AddStep(new ReduceStockEvent() { Number = 1 });
 
             // Coast will send events in the order in which the saga steps were added (provided that the previous event was successfully processed).
             await _sagaManager.StartAsync(saga);
@@ -168,6 +171,26 @@ Coast provides default idempotent judgment, so users do not need to write judgme
 
 ## TCC
 
-TCC is a kind of compensation transaction, which requires each service to provide Try, Confirm and Cancel interfaces. Its core idea is to release the lock of resources as soon as possible by reserving resources. If the transaction can be committed, the confirmation of reserved resources will be completed.  
+Although Coast does not provide an interface for TCC operations, you can still use Saga step sequence control to achieve:
+```c#
+        [HttpPost("TCC")]
+        public async Task<IActionResult> TCC(int number)
+        {
+            var saga = await _sagaManager.CreateAsync();
 
-Next Release ---------------
+            // Try, Cancel
+            saga.AddStep(new CreateOrderEvent() { OrderName = "shoes", Number = number }, hasCompensation: true, executionSequenceNumber: 1);
+            saga.AddStep(new DeductionEvent() { Money = 101 * number }, hasCompensation: true, executionSequenceNumber: 1);
+            saga.AddStep(new ReduceStockEvent() { Number = number }, hasCompensation: true, executionSequenceNumber: 1);
+
+            // Commit
+            saga.AddStep(new CreateOrderCommitEvent() { OrderName = "shoes", Number = number }, hasCompensation: false, executionSequenceNumber: 2);
+            saga.AddStep(new DeductionCommitEvent() { Money = 101 * number }, hasCompensation: false, executionSequenceNumber: 2);
+            saga.AddStep(new ReduceStockCommitEvent() { Number = number }, hasCompensation: false, executionSequenceNumber: 2);
+
+            await _sagaManager.StartAsync(saga);
+
+            return Ok();
+        }
+```
+There are two sets of concurrent Saga above. The first set is responsible for the Try and Cancel operations in TCC. In Try, it is no longer a direct deduction, or a direct reduction of inventory, and chooses to freeze resources. If there is an error when freezing resources, execute the Cancel operation directly. If it succeeds, enter the second group. The second group has no compensation operations and does not allow failure. It is responsible for the Commit operation in TCC, unfreezing resources, and deducting money or is to reduce inventory.
