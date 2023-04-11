@@ -131,6 +131,7 @@
 
             int affected2 = 0;
             string error2 = string.Empty;
+
             if (StepType == TransactionStepTypeEnum.Compensate)
             {
                 (affected2, error2) = await _branchBarrierRepository.InsertBarrierAsync(trans,

@@ -44,13 +44,15 @@
                     var eventType = _subsManager.GetEventTypeByName(eventName);
                     if (@event.StepType == TransactionStepTypeEnum.Commit)
                     {
-                        (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, @event.RequestBody, subscription, TransactionStepTypeEnum.Commit);
+                        (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, @event.RequestBody, subscription, 
+                            TransactionStepTypeEnum.Commit);
                         await Task.Yield();
                         await (Task)concreteType.GetMethod("CommitAsync").Invoke(handler, new object[] { eventDataObj });
                     }
                     else if (@event.StepType == TransactionStepTypeEnum.Compensate)
                     {
-                        (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, @event.RequestBody, subscription, TransactionStepTypeEnum.Compensate);
+                        (object eventDataObj, Type concreteType) = ConvertEventDataAndConcreteType(eventType, @event.RequestBody, subscription, 
+                            TransactionStepTypeEnum.Compensate);
                         await Task.Yield();
                         await (Task)concreteType.GetMethod("CancelAsync").Invoke(handler, new object[] { eventDataObj });
                     }
@@ -66,10 +68,15 @@
             }
         }
 
-        private (dynamic eventDataObj, Type concreteType) ConvertEventDataAndConcreteType(Type eventType, string message, SubscriptionInfo subscription, TransactionStepTypeEnum stepType)
+        private (dynamic eventDataObj, Type concreteType) ConvertEventDataAndConcreteType(
+            Type eventType,
+            string message,
+            SubscriptionInfo subscription,
+            TransactionStepTypeEnum stepType)
         {
             dynamic eventDataObj;
             Type concreteType;
+
             if (subscription.IsDynamic)
             {
                 eventDataObj = message;
