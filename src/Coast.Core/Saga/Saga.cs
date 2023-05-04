@@ -58,6 +58,7 @@
                 }
 
                 Interlocked.Increment(ref idx);
+
                 if (idx == _sagaStepGroups.Count)
                 {
                     return null;
@@ -79,6 +80,7 @@
                 }
 
                 Interlocked.Decrement(ref idx);
+
                 if (idx < 0)
                 {
                     return null;
@@ -188,13 +190,16 @@
                 {
                     @firingEvents = GoNext()?.Select(i => i.GetStepEvents(_lastExecutionSequenceNumber)).ToList();
                 }
-                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed || i.State == SagaStepStateEnum.Compensated))
+                else if (CurrentSagaStepGroup.All(i => i.State == SagaStepStateEnum.Failed || 
+                    i.State == SagaStepStateEnum.Compensated))
                 {
                     @firingEvents = GoPrevious()?.Select(i => i.GetStepCompensateEvents()).ToList();
                 }
                 else if (CurrentSagaStepGroup.Any(i => i.State == SagaStepStateEnum.Failed))
                 {
-                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && i.State !=SagaStepStateEnum.Compensating && i.State != SagaStepStateEnum.Compensated && i.HasCompensation == true).ToList();
+                    var needCompensate = CurrentSagaStepGroup.Where(i => i.State != SagaStepStateEnum.Failed && 
+                        i.State !=SagaStepStateEnum.Compensating &&
+                        i.State != SagaStepStateEnum.Compensated && i.HasCompensation == true).ToList();
                     needCompensate.ForEach(i => i.State = SagaStepStateEnum.Compensating);
                     @firingEvents = needCompensate.Select(i => i.GetStepCompensateEvents()).ToList();
                 }
@@ -228,6 +233,7 @@
             while (prev != null)
             {
                 CurrentExecutionSequenceNumber = prev[0].ExecutionSequenceNumber;
+
                 if (prev.Any(i => i.HasCompensation))
                 {
                     var needCompensate = prev.Where(p => p.HasCompensation).ToList();
@@ -262,14 +268,14 @@
                 FinishedTime = DateTime.UtcNow;
             }
             else if (SagaSteps.All(s =>
-                        s.State == SagaStepStateEnum.Started ||
-                        s.State == SagaStepStateEnum.Awaiting))
+                s.State == SagaStepStateEnum.Started ||
+                s.State == SagaStepStateEnum.Awaiting))
             {
                 State = SagaStateEnum.Started;
             }
             else if (SagaSteps.All(s => s.State == SagaStepStateEnum.Failed ||
-                                    s.State == SagaStepStateEnum.Compensated ||
-                                    s.State == SagaStepStateEnum.Cancelled))
+                s.State == SagaStepStateEnum.Compensated ||
+                s.State == SagaStepStateEnum.Cancelled))
             {
                 State = SagaStateEnum.Aborted;
             }

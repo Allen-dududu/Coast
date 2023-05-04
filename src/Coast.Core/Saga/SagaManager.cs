@@ -52,6 +52,7 @@
 
             var @sagaEvents = saga.Start();
             await _unitOfWork.SagaRepository.SaveSagaAsync(saga, cancellationToken).ConfigureAwait(false);
+
             if (@sagaEvents != null)
             {
                 await _unitOfWork.EventLogRepository.SaveEventAsync(@sagaEvents, cancellationToken).ConfigureAwait(false);
